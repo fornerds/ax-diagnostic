@@ -2128,6 +2128,21 @@
       return L.join('\n');
     }
 
+    // 터미널에 그대로 붙여넣을 명령 묶음(가장 확실한 경로)
+    function generateCommands() {
+      const sel = STATE.selectedTools.map((id) => ({ id, name: (TOOL_MAP[id] || {}).name || id, info: connectorInfo(id) }));
+      const builds = sel.filter((t) => t.info.route === 'build');
+      const connects = sel.filter((t) => t.info.route === 'connect');
+      const lines = [];
+      if (builds.length) lines.push('npx ' + CLI_SPEC + ' --tools ' + builds.map((t) => t.id).join(','));
+      connects.forEach((t) => {
+        const url = CONNECT_URL[t.id];
+        if (url) lines.push('claude mcp add --transport http ' + t.id + ' ' + url);
+        else lines.push("# " + t.name + ": Claude 설정 > 커넥터에서 추가(로그인) — 공개 고정 URL 없음");
+      });
+      return lines.join('\n');
+    }
+
     // 도구 클릭 → 실제 연동 방법 모달
     function openConnectorDetail(id) {
       const tool = TOOL_MAP[id];
@@ -2225,14 +2240,20 @@
       const ready = cConn + cBuild;
       // 진단 → 연동: Claude에 그대로 붙여넣는 프롬프트(핵심) + 터미널 직접 실행(보조)
       const claudePrompt = ready ? generateClaudePrompt() : '';
-      const npxCmd = buildIds.length ? ('npx ' + CLI_SPEC + ' --tools ' + buildIds.join(',')) : '';
+      const cmds = ready ? generateCommands() : '';
       const actionBlock = ready ? `
         <div class="install-cta">
-          <div class="install-cta-head"><b>이제 Claude에 연동하세요</b> <span class="dim">— 선택한 ${ready}개를 바로 연결</span></div>
-          <p class="install-cta-note" style="margin:2px 0 10px;">아래 프롬프트를 복사해 <b>Claude(코워크 또는 Claude Code)</b>에 붙여넣으세요. Claude가 순서대로 연동을 진행하고, 키가 필요한 도구는 하나씩 물어봅니다.</p>
+          <div class="install-cta-head"><b>이제 연동하세요</b> <span class="dim">— 선택한 ${ready}개</span></div>
+
+          <p class="install-cta-note" style="margin:4px 0 6px;"><b style="color:var(--text-primary);">방법 1 (가장 확실) — 내 터미널에서 실행</b></p>
+          <div class="conn-code conn-code-block">${escapeHtml(cmds)}</div>
+          <button class="conn-copy conn-copy-wide" data-copy="${escapeHtml(cmds)}">명령 복사</button>
+          <p class="install-cta-note">PowerShell/터미널에 붙여넣어 실행 → 키는 실행 중 직접 입력(이 PC에만 저장). 공식 커넥터는 실행 후 브라우저 로그인.</p>
+
+          <p class="install-cta-note" style="margin:16px 0 6px;"><b style="color:var(--text-primary);">방법 2 — Claude에게 맡기기</b> <span class="dim">(Claude Code · 터미널/VS Code)</span></p>
           <div class="conn-code conn-code-block">${escapeHtml(claudePrompt)}</div>
-          <button class="conn-copy conn-copy-wide" data-copy="${escapeHtml(claudePrompt)}">프롬프트 복사 → Claude에 붙여넣기</button>
-          ${buildIds.length ? `<p class="install-cta-note">터미널을 선호하시면 이 명령도 동일하게 동작합니다: <b>${escapeHtml(npxCmd)}</b></p>` : ''}
+          <button class="conn-copy conn-copy-wide" data-copy="${escapeHtml(claudePrompt)}">프롬프트 복사</button>
+          <p class="install-cta-note"><b>Claude Code</b>(내 PC에서 도는 버전)에 붙여넣으면 Claude가 대신 실행합니다. <b>데스크톱 앱(코워크)</b>은 보안 샌드박스라 직접 실행은 못 하고 단계 안내만 해줘요 — 그땐 위 <b>방법 1</b>로 진행하세요.</p>
         </div>` : '';
       const summary = `
         <div class="conn-summary">
