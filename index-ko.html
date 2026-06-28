@@ -2108,10 +2108,11 @@
       L.push('');
       if (builds.length) {
         L.push('[1] 포너즈 MCP 서버로 연동 (키 필요)');
-        L.push('아래 명령을 터미널에서 실행해줘. 실행하면 각 도구의 키를 물어봐:');
-        L.push('  npx ' + CLI_SPEC + ' --tools ' + builds.map((t) => t.id).join(','));
-        L.push('각 도구의 키 발급 방법은 이 가이드를 참고해(필요하면 나에게 단계별로 알려줘):');
+        L.push('이 도구들은 API 키가 필요해. 아래 각 SETUP 가이드에 "환경변수 이름"과 발급 방법이 있어. 먼저 가이드를 확인하고, 나에게 키 값을 물어봐줘:');
         builds.forEach((t) => L.push('  - ' + t.name + ': ' + SITE_BASE + '/mcp-servers/' + t.id + '/SETUP.md'));
+        L.push('키를 받으면, 그 값들을 "환경변수로 설정한 상태"에서 아래 명령을 실행해줘 (이 CLI는 환경변수에 있는 키를 자동으로 쓰므로 대화형 입력 없이 진행돼. 못 받은 키는 건너뛰어도 됨):');
+        L.push('  npx ' + CLI_SPEC + ' --tools ' + builds.map((t) => t.id).join(','));
+        L.push('(참고: 내가 터미널에서 직접 실행할 땐 위 명령만 실행하면 CLI가 키를 하나씩 물어봐.)');
         L.push('');
       }
       if (connects.length) {
