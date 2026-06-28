@@ -482,6 +482,16 @@
     .install-cta-head { font-size: 14px; color: var(--text-primary); margin-bottom: 8px; }
     .install-cta-head .dim, .install-cta-note .dim { color: var(--text-secondary); font-weight: 400; }
     .install-cta-note { font-size: 11.5px; color: var(--text-secondary); margin: 8px 0 0; line-height: 1.6; }
+    /* 상태별 그룹 (직관 표시) */
+    .status-groups { display: flex; flex-direction: column; gap: 10px; margin: 14px 0 4px; }
+    .status-group { padding: 12px 14px; border: 1px solid var(--border-light); border-radius: 8px; background: var(--bg-secondary); }
+    .sg-head { font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 9px; display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+    .sg-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex: none; }
+    .sg-connect .sg-dot { background: #4ade80; } .sg-build .sg-dot { background: #60a5fa; } .sg-unable .sg-dot { background: #6b7280; }
+    .sg-count { font-size: 12px; font-weight: 700; }
+    .sg-connect .sg-count { color: #4ade80; } .sg-build .sg-count { color: #60a5fa; } .sg-unable .sg-count { color: var(--text-secondary); }
+    .sg-sub { font-size: 11px; font-weight: 400; color: var(--text-secondary); }
+    .sg-tools { display: flex; flex-wrap: wrap; gap: 6px; }
 
     .rec-meta {
       display: flex;
@@ -2198,53 +2208,28 @@
       document.getElementById('conn-modal').classList.add('active');
     }
 
-    // 선택한 "모든" 도구를 카테고리별로 묶어, AI 전환 관점의 연동·전환 방식을 보여준다.
+    // 선택한 도구를 "연동 상태"별로 묶어 한눈에 보여주고, Claude에 붙여넣을 안내 프롬프트를 만든다.
     function renderStackMap() {
-      const groups = {};
-      STATE.selectedTools.forEach((tid) => {
-        const tool = TOOL_MAP[tid];
-        if (!tool) return;
-        (groups[tool.category] = groups[tool.category] || []).push(tool);
-      });
+      if (!STATE.selectedTools.length) return '';
 
-      const order = TOOL_CATEGORIES.map(c => c.id);
-      const cats = Object.keys(groups).sort((a, b) => order.indexOf(a) - order.indexOf(b));
-      if (!cats.length) return '';
-
-      const rows = cats.map((cat) => {
-        const meta = CATEGORY_TRANSFORM[cat];
-        const label = (TOOL_CATEGORIES.find(c => c.id === cat) || {}).label || cat;
-        const chips = groups[cat].map(t => {
-          const ci = connectorInfo(t.id);
-          const labelText = ci.route === 'build' && ci.uncertain ? 'MCP 서버 제공*' : ci.label;
-          const badge = ci.label ? `<span class="conn-badge ${ci.cls}">${labelText}</span>` : '';
-          return `<span class="stack-tool" data-tid="${t.id}" role="button" tabindex="0">${escapeHtml(t.name)}${badge}</span>`;
-        }).join('');
-        const phaseBadge = meta
-          ? (meta.phase === 1
-              ? '<span class="stack-phase badge-easy">즉시 연동</span>'
-              : '<span class="stack-phase badge-medium">연동·개발</span>')
-          : '';
-        const flow = meta
-          ? `<div class="stack-flow"><b>${meta.connect}</b><span class="arrow">→</span>${meta.transform}</div>`
-          : '';
-        return `
-          <div class="stack-row">
-            <div class="stack-row-head"><span class="stack-cat">${escapeHtml(label)}</span>${phaseBadge}</div>
-            <div class="stack-tools">${chips}</div>
-            ${flow}
-          </div>`;
-      }).join('');
-
-      // 연동 가능성 집계 (선택 도구 기준)
+      // 연동 가능성 집계 + 상태별 도구 목록 (선택 도구 기준)
       let cConn = 0, cBuild = 0, cUnable = 0, hasUncertain = false;
       const buildIds = [];
+      const grp = { connect: [], build: [], unable: [] };
       STATE.selectedTools.forEach((tid) => {
         const ci = connectorInfo(tid);
-        if (ci.route === 'connect') cConn++;
-        else if (ci.route === 'build') { cBuild++; buildIds.push(tid); if (ci.uncertain) hasUncertain = true; }
-        else if (ci.route === 'unable') cUnable++;
+        const nm = (TOOL_MAP[tid] || {}).name || tid;
+        if (ci.route === 'connect') { cConn++; grp.connect.push({ id: tid, name: nm }); }
+        else if (ci.route === 'build') { cBuild++; buildIds.push(tid); if (ci.uncertain) hasUncertain = true; grp.build.push({ id: tid, name: nm, uncertain: ci.uncertain }); }
+        else if (ci.route === 'unable') { cUnable++; grp.unable.push({ id: tid, name: nm }); }
       });
+      const sgChip = (t) => `<span class="stack-tool" data-tid="${t.id}" role="button" tabindex="0">${escapeHtml(t.name)}${t.uncertain ? '<span class="conn-badge conn-build" style="margin-left:6px;">키확인*</span>' : ''}</span>`;
+      const statusGroups = `
+        <div class="status-groups">
+          ${grp.connect.length ? `<div class="status-group sg-connect"><div class="sg-head"><span class="sg-dot"></span>즉시 연동 · 로그인만<span class="sg-count">${cConn}개</span><span class="sg-sub">가장 쉬움 — 브라우저 로그인으로 끝</span></div><div class="sg-tools">${grp.connect.map(sgChip).join('')}</div></div>` : ''}
+          ${grp.build.length ? `<div class="status-group sg-build"><div class="sg-head"><span class="sg-dot"></span>키 발급 후 연동 · 서버 준비됨<span class="sg-count">${cBuild}개</span><span class="sg-sub">서버는 우리가 만들어 둠 — 키만 발급</span></div><div class="sg-tools">${grp.build.map(sgChip).join('')}</div></div>` : ''}
+          ${grp.unable.length ? `<div class="status-group sg-unable"><div class="sg-head"><span class="sg-dot"></span>현재 연동 불가<span class="sg-count">${cUnable}개</span><span class="sg-sub">공개 API가 없어 자동 연동 불가</span></div><div class="sg-tools">${grp.unable.map(sgChip).join('')}</div></div>` : ''}
+        </div>`;
       const ready = cConn + cBuild;
       // 진단 → 연동: Claude에 그대로 붙여넣는 프롬프트(핵심) + 터미널 직접 실행(보조)
       const claudePrompt = ready ? generateClaudePrompt() : '';
@@ -2265,24 +2250,17 @@
           <p class="install-cta-note">PowerShell/터미널에 붙여넣어 실행 → 키는 실행 중 가림(*) 입력, 이 PC에만 저장(채팅에 안 남음). 민감한 키(메일·결제·발송)는 이 방법이 가장 안전합니다.</p>
         </div>` : '';
       const summary = `
-        <div class="conn-summary">
-          <div class="conn-stat"><div class="num">${ready}</div><div class="lbl">지금 연동 가능</div></div>
-          <div class="conn-stat"><div class="num">${cConn}</div><div class="lbl">공식 커넥터(로그인)</div></div>
-          <div class="conn-stat"><div class="num">${cBuild}</div><div class="lbl">MCP 서버 제공</div></div>
-          <div class="conn-stat"><div class="num">${cUnable}</div><div class="lbl">현재 연동 불가</div></div>
-        </div>
+        ${statusGroups}
         ${actionBlock}
         <p class="conn-note">
-          <b style="color:#4ade80;">공식 커넥터</b> 로그인만 하면 연동 · <b style="color:#60a5fa;">MCP 서버 제공</b> 키 발급 후 연동(가이드 제공) · <b style="color:var(--text-secondary);">연동 불가</b> 공개 API 없음(정직 표기).
-          ${hasUncertain ? '<br>* 표시: 키 발급 화면 안내가 미확인일 수 있어 실제 콘솔 확인을 권장합니다.' : ''}
-          <br>아래에서 <b style="color:var(--text-primary);">각 도구를 클릭</b>하면 그 도구의 연동 방법(명령·로그인·키 발급 가이드)을 따로 볼 수 있습니다.
+          ${hasUncertain ? '<b style="color:#60a5fa;">키확인*</b> 표시 도구는 키 발급 화면 안내가 일부 미확인이라 실제 콘솔 확인을 권장합니다.<br>' : ''}
+          위 <b style="color:var(--text-primary);">도구 이름을 클릭</b>하면 그 도구의 연동 방법(로그인·명령·키 발급 가이드)을 자세히 볼 수 있습니다.
         </p>`;
 
       return `
         <div class="section-heading">선택하신 도구, 이렇게 연결됩니다</div>
-        <div class="section-sub">${STATE.selectedTools.length}개 중 <b style="color:var(--text-primary);">${ready}개를 지금 Claude에 연동</b>할 수 있습니다. 아래 프롬프트 하나면 됩니다.</div>
+        <div class="section-sub">${STATE.selectedTools.length}개 중 <b style="color:var(--text-primary);">${ready}개를 지금 Claude에 연동</b>할 수 있어요. 어떤 게 바로 되고 어떤 게 키가 필요한지 아래에서 한눈에 확인하세요.</div>
         ${summary}
-        ${rows}
       `;
     }
 
