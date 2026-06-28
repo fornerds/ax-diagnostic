@@ -2308,10 +2308,6 @@
       const phase1 = STATE.results.filter(r => r.phase === 1);
       const phase2 = STATE.results.filter(r => r.phase === 2);
 
-      let lo = 0, hi = 0;
-      STATE.results.forEach((r) => { const [a, b] = parseHours(r.timeSaving); lo += a; hi += b; });
-      const saveText = lo === hi ? `${lo}` : `${lo}~${hi}`;
-
       let html = '';
 
       if (STATE.painPoint) {
@@ -2322,16 +2318,6 @@
             <span class="pain-foot">상담에서 이 업무를 최우선으로 다뤄 전환 효과를 가장 빨리 체감하도록 설계합니다.</span>
           </div>`;
       }
-
-      html += `
-        <div class="results-summary">
-          <div class="stat-pill"><span class="stat-value">${STATE.selectedTools.length}</span><span class="stat-label">진단한 도구</span></div>
-          <div class="stat-pill"><span class="stat-value">${STATE.results.length}</span><span class="stat-label">자동화 대상 업무</span></div>
-          <div class="stat-pill"><span class="stat-value">${phase1.length}</span><span class="stat-label">지금 바로</span></div>
-          <div class="stat-pill"><span class="stat-value">${phase2.length}</span><span class="stat-label">개발 단계</span></div>
-          <div class="stat-pill"><span class="stat-value">${saveText}</span><span class="stat-label">주간 절감(시간·추정)</span></div>
-        </div>
-      `;
 
       html += renderStackMap();
 
