@@ -2097,35 +2097,42 @@
       return "Claude 설정 > 커넥터에서 '" + name + "' 추가 후 로그인";
     }
 
-    // 선택한 모든 도구 → Claude(코워크/Code)에 그대로 붙여넣어 연동을 맡기는 프롬프트
+    // 비개발자용 — Claude Code에 붙여넣으면 "한 단계씩 떠먹여주듯" 안내하게 만드는 프롬프트
     function generateClaudePrompt() {
       const sel = STATE.selectedTools.map((id) => ({ id, name: (TOOL_MAP[id] || {}).name || id, info: connectorInfo(id) }));
       const builds = sel.filter((t) => t.info.route === 'build');
       const connects = sel.filter((t) => t.info.route === 'connect');
       const unables = sel.filter((t) => t.info.route === 'unable');
       const L = [];
-      L.push('내가 쓰는 업무도구들을 Claude(MCP)에 연동하려고 해. 아래 순서대로 네가 설정해줘. 키가 필요한 건 나에게 하나씩 물어보고 입력해줘.');
+      L.push('나는 개발자가 아니야. 내가 쓰는 업무도구들을 Claude에 연동하고 싶어. 네가 처음부터 끝까지 아주 쉽게, 한 번에 한 단계씩 안내해줘. 전문용어는 풀어서 설명하고, 한 단계가 끝나면 다음으로 넘어가줘. 내가 어디서 막히면 화면이 어떤지 물어보고 같이 풀어줘.');
       L.push('');
+      L.push('[연동할 도구]');
+      if (builds.length) L.push('- 키가 필요(전용 서버 설치): ' + builds.map((t) => t.name).join(', '));
+      if (connects.length) L.push('- 로그인만 하면 됨(공식 커넥터): ' + connects.map((t) => t.name).join(', '));
+      if (unables.length) L.push('- 지금은 연동 불가(공개 API 없음): ' + unables.map((t) => t.name).join(', '));
+      L.push('');
+      L.push('[이렇게 진행해줘]');
+      L.push('0) 먼저 내 컴퓨터에 Node.js 가 깔려 있는지 확인해줘. 없으면 설치 방법을 아주 쉽게 알려주고, 설치를 도와줘.');
+      let step = 1;
       if (builds.length) {
-        L.push('[1] 포너즈 MCP 서버로 연동 (키 필요)');
-        L.push('이 도구들은 API 키가 필요해. 아래 각 SETUP 가이드에 "환경변수 이름"과 발급 방법이 있어. 먼저 가이드를 확인하고, 나에게 키 값을 물어봐줘:');
-        builds.forEach((t) => L.push('  - ' + t.name + ': ' + SITE_BASE + '/mcp-servers/' + t.id + '/SETUP.md'));
-        L.push('키를 받으면, 그 값들을 "환경변수로 설정한 상태"에서 아래 명령을 실행해줘 (이 CLI는 환경변수에 있는 키를 자동으로 쓰므로 대화형 입력 없이 진행돼. 못 받은 키는 건너뛰어도 됨):');
-        L.push('  npx ' + CLI_SPEC + ' --tools ' + builds.map((t) => t.id).join(','));
-        L.push('(참고: 내가 터미널에서 직접 실행할 땐 위 명령만 실행하면 CLI가 키를 하나씩 물어봐.)');
-        L.push('');
+        L.push(step + ') [키가 필요한 도구] 각 도구의 발급 가이드를 네가 먼저 읽고, "어느 사이트의 어떤 메뉴·버튼을 눌러서" 키를 받는지 나에게 그림 그리듯 쉽게 설명해줘. 그리고 키를 한 번에 하나씩만 물어봐. 키를 받으면 환경변수로 넣어서 아래 명령을 실행해줘(그러면 다시 안 물어보고 진행돼). 키는 내 컴퓨터에만 저장되고 어디로도 전송되지 않아:');
+        L.push('   npx ' + CLI_SPEC + ' --tools ' + builds.map((t) => t.id).join(','));
+        L.push('   발급 가이드:');
+        builds.forEach((t) => L.push('   - ' + t.name + ': ' + SITE_BASE + '/mcp-servers/' + t.id + '/SETUP.md'));
+        step++;
       }
       if (connects.length) {
-        L.push('[' + (builds.length ? 2 : 1) + '] 공식 커넥터로 연동 (로그인)');
-        connects.forEach((t) => L.push('  - ' + t.name + ': ' + connectAddInstruction(t.id, t.name)));
-        L.push('  (claude mcp add 로 추가한 경우 브라우저에서 로그인/권한 승인까지 해줘)');
-        L.push('');
+        L.push(step + ') [로그인만 하면 되는 도구] 아래를 한 줄씩 실행하고, 브라우저에 로그인 창이 뜨면 내가 무엇을 누르면 되는지 알려줘:');
+        connects.forEach((t) => {
+          const url = CONNECT_URL[t.id];
+          if (url) L.push('   - ' + t.name + ': claude mcp add --transport http ' + t.id + ' ' + url);
+          else L.push('   - ' + t.name + ': Claude 설정 > 커넥터에서 추가(로그인). 어디를 누르면 되는지 단계로 알려줘.');
+        });
+        step++;
       }
-      if (unables.length) {
-        L.push('[참고] 아래는 공개 API가 없어 현재 자동 연동은 어려워: ' + unables.map((t) => t.name).join(', '));
-        L.push('');
-      }
-      L.push('마지막에 `claude mcp list` 로 연동된 커넥터를 확인해줘.');
+      L.push(step + ') 다 끝나면 `claude mcp list` 로 확인하고, 잘 연동됐는지 쉬운 말로 정리해줘.');
+      L.push('');
+      L.push('[보안] 메일 비밀번호·결제·문자발송 키처럼 민감한 값은 특히 조심히 다뤄줘. 연동이 끝난 뒤 필요하면 그 키들을 다시 발급(교체)하라고 알려줘.');
       return L.join('\n');
     }
 
@@ -2246,15 +2253,16 @@
         <div class="install-cta">
           <div class="install-cta-head"><b>이제 연동하세요</b> <span class="dim">— 선택한 ${ready}개</span></div>
 
-          <p class="install-cta-note" style="margin:4px 0 6px;"><b style="color:var(--text-primary);">방법 1 (가장 확실) — 내 터미널에서 실행</b></p>
+          <p class="install-cta-note" style="margin:4px 0 6px;"><b style="color:var(--text-primary);">방법 1 (추천 · 쉬움) — Claude Code에게 맡기기</b></p>
+          <p class="install-cta-note" style="margin:0 0 8px;">아래 프롬프트를 복사해 <b>Claude Code</b>에 붙여넣으면, 개발 지식이 없어도 <b>Claude가 한 단계씩 떠먹여주듯</b> 안내합니다. (키 발급 위치, 클릭할 버튼, 로그인까지)</p>
+          <div class="conn-code conn-code-block">${escapeHtml(claudePrompt)}</div>
+          <button class="conn-copy conn-copy-wide" data-copy="${escapeHtml(claudePrompt)}">프롬프트 복사 → Claude Code에 붙여넣기</button>
+          <p class="install-cta-note">Claude Code는 내 컴퓨터에서 도는 Claude(터미널 또는 VS Code 확장)예요. 처음이라면 <a class="conn-link" href="https://www.anthropic.com/claude-code" target="_blank" rel="noopener">설치·시작 안내</a>. <b>데스크톱 앱(코워크)</b>은 보안상 직접 설치는 못 하고 안내만 해줘요.</p>
+
+          <p class="install-cta-note" style="margin:16px 0 6px;"><b style="color:var(--text-primary);">방법 2 (개발자용) — 내 터미널에서 직접</b></p>
           <div class="conn-code conn-code-block">${escapeHtml(cmds)}</div>
           <button class="conn-copy conn-copy-wide" data-copy="${escapeHtml(cmds)}">명령 복사</button>
-          <p class="install-cta-note">PowerShell/터미널에 붙여넣어 실행 → 키는 실행 중 직접 입력(이 PC에만 저장). 공식 커넥터는 실행 후 브라우저 로그인.</p>
-
-          <p class="install-cta-note" style="margin:16px 0 6px;"><b style="color:var(--text-primary);">방법 2 — Claude에게 맡기기</b> <span class="dim">(Claude Code · 터미널/VS Code)</span></p>
-          <div class="conn-code conn-code-block">${escapeHtml(claudePrompt)}</div>
-          <button class="conn-copy conn-copy-wide" data-copy="${escapeHtml(claudePrompt)}">프롬프트 복사</button>
-          <p class="install-cta-note"><b>Claude Code</b>(내 PC에서 도는 버전)에 붙여넣으면 Claude가 대신 실행합니다. <b>데스크톱 앱(코워크)</b>은 보안 샌드박스라 직접 실행은 못 하고 단계 안내만 해줘요 — 그땐 위 <b>방법 1</b>로 진행하세요.</p>
+          <p class="install-cta-note">PowerShell/터미널에 붙여넣어 실행 → 키는 실행 중 가림(*) 입력, 이 PC에만 저장(채팅에 안 남음). 민감한 키(메일·결제·발송)는 이 방법이 가장 안전합니다.</p>
         </div>` : '';
       const summary = `
         <div class="conn-summary">
