@@ -707,6 +707,8 @@
       background: var(--border-medium); color: var(--text-primary); border: none; cursor: pointer;
     }
     .conn-copy:hover { background: #3a3a3a; }
+    .conn-code-block { white-space: pre-wrap; max-height: 300px; overflow: auto; padding-right: 12px; }
+    .conn-copy-wide { position: static; display: block; width: 100%; margin: 8px 0 0; padding: 10px; text-align: center; font-size: 13px; font-weight: 600; border-radius: 6px; }
     .conn-link {
       display: inline-block; margin-top: 2px; font-size: 13px;
       color: #60a5fa; text-decoration: none;
@@ -2049,6 +2051,82 @@
     }
 
     const CONNECTORS_HELP = 'https://support.claude.com/en/articles/14503689-mcp-connectors';
+    const CLI_SPEC = 'github:fornerds/fornerds-connect';
+    const SITE_BASE = 'https://ax.fornerds.ai';
+
+    // 공식 커넥터의 검증된 원격 MCP 엔드포인트 URL (공식 문서 확인분만, --transport http 호환 고정 URL). 2026-06 검증.
+    // 계정별 가변(teams·smartsheet·zoho·zapier 등)·미제공(ga·zendesk·hotjar 등)은 넣지 않고 디렉터리 안내로 대체한다.
+    const CONNECT_URL = {
+      slack: 'https://mcp.slack.com/mcp',
+      slack_workflow: 'https://mcp.slack.com/mcp',
+      zoom: 'https://mcp.zoom.us/mcp/zoom/streamable',
+      webex: 'https://mcp.webexapis.com/mcp/webex-messaging',
+      notion: 'https://mcp.notion.com/mcp',
+      confluenece: 'https://mcp.atlassian.com/v1/mcp',
+      jira: 'https://mcp.atlassian.com/v1/mcp',
+      jira_cloud: 'https://mcp.atlassian.com/v1/mcp',
+      asana: 'https://mcp.asana.com/v2/mcp',
+      monday: 'https://mcp.monday.com/mcp',
+      clickup: 'https://mcp.clickup.com/mcp',
+      airtable: 'https://mcp.airtable.com/mcp',
+      linear: 'https://mcp.linear.app/mcp',
+      todoist: 'https://ai.todoist.net/mcp',
+      hubspot: 'https://mcp.hubspot.com/anthropic',
+      streak: 'https://api.streak.com/mcp',
+      powerbi: 'https://api.fabric.microsoft.com/v1/mcp/powerbi',
+      amplitude: 'https://mcp.amplitude.com/mcp',
+      mixpanel: 'https://mcp.mixpanel.com/mcp',
+      intercom: 'https://mcp.intercom.com/mcp',
+      ms365: 'https://microsoft365.mcp.claude.com/',
+      dropbox: 'https://mcp.dropbox.com/mcp',
+      canva: 'https://mcp.canva.com/mcp',
+      onlyoffice: 'https://mcp.onlyoffice.com/mcp',
+      perplexity: 'https://mcp.perplexity.ai/mcp',
+      tiro: 'https://mcp.tiro.ooo/mcp',
+      plaud: 'https://mcp.plaud.ai/mcp',
+      ifttt: 'https://ifttt.com/mcp',
+      meta_ads: 'https://mcp.facebook.com/ads',
+      typeform: 'https://api.typeform.com/mcp',
+      docusign: 'https://mcp.docusign.com/mcp',
+    };
+
+    // connect 도구를 어떻게 추가하는지 한 줄 안내(명령 or 디렉터리)
+    function connectAddInstruction(id, name) {
+      const url = CONNECT_URL[id];
+      if (url) return 'claude mcp add --transport http ' + id + ' ' + url;
+      return "Claude 설정 > 커넥터에서 '" + name + "' 추가 후 로그인";
+    }
+
+    // 선택한 모든 도구 → Claude(코워크/Code)에 그대로 붙여넣어 연동을 맡기는 프롬프트
+    function generateClaudePrompt() {
+      const sel = STATE.selectedTools.map((id) => ({ id, name: (TOOL_MAP[id] || {}).name || id, info: connectorInfo(id) }));
+      const builds = sel.filter((t) => t.info.route === 'build');
+      const connects = sel.filter((t) => t.info.route === 'connect');
+      const unables = sel.filter((t) => t.info.route === 'unable');
+      const L = [];
+      L.push('내가 쓰는 업무도구들을 Claude(MCP)에 연동하려고 해. 아래 순서대로 네가 설정해줘. 키가 필요한 건 나에게 하나씩 물어보고 입력해줘.');
+      L.push('');
+      if (builds.length) {
+        L.push('[1] 포너즈 MCP 서버로 연동 (키 필요)');
+        L.push('아래 명령을 터미널에서 실행해줘. 실행하면 각 도구의 키를 물어봐:');
+        L.push('  npx ' + CLI_SPEC + ' --tools ' + builds.map((t) => t.id).join(','));
+        L.push('각 도구의 키 발급 방법은 이 가이드를 참고해(필요하면 나에게 단계별로 알려줘):');
+        builds.forEach((t) => L.push('  - ' + t.name + ': ' + SITE_BASE + '/mcp-servers/' + t.id + '/SETUP.md'));
+        L.push('');
+      }
+      if (connects.length) {
+        L.push('[' + (builds.length ? 2 : 1) + '] 공식 커넥터로 연동 (로그인)');
+        connects.forEach((t) => L.push('  - ' + t.name + ': ' + connectAddInstruction(t.id, t.name)));
+        L.push('  (claude mcp add 로 추가한 경우 브라우저에서 로그인/권한 승인까지 해줘)');
+        L.push('');
+      }
+      if (unables.length) {
+        L.push('[참고] 아래는 공개 API가 없어 현재 자동 연동은 어려워: ' + unables.map((t) => t.name).join(', '));
+        L.push('');
+      }
+      L.push('마지막에 `claude mcp list` 로 연동된 커넥터를 확인해줘.');
+      return L.join('\n');
+    }
 
     // 도구 클릭 → 실제 연동 방법 모달
     function openConnectorDetail(id) {
@@ -2069,13 +2147,22 @@
           '<div class="conn-code">' + escapeHtml(cmd) + '<button class="conn-copy" data-copy="' + escapeHtml(cmd) + '">복사</button></div>' +
           '<p class="conn-step" style="font-size:12px;">필요한 환경변수(<b>--env KEY=값</b>)는 가이드의 「환경변수 매핑」을 참고하세요.</p>';
       } else if (ci.route === 'connect') {
-        const cmd = 'claude mcp add --transport http ' + id + ' <공식 MCP URL>';
+        const url = CONNECT_URL[id];
         html =
           '<span class="conn-route-tag conn-connect">공식 커넥터</span>' +
-          '<p class="conn-step">Claude가 <b>' + escapeHtml(tool.name) + '</b>의 공식 원격 커넥터를 지원합니다. 서버 구축 없이 <b>로그인만</b> 하면 됩니다.</p>' +
-          '<p class="conn-step"><b>연결 방법</b><br>1. Claude 데스크톱/Code에서 <b>설정 &rarr; 커넥터(Connectors)</b> 열기<br>2. 목록에서 <b>' + escapeHtml(tool.name) + '</b> 추가 &rarr; 브라우저에서 로그인·권한 승인<br>3. 또는 CLI로 추가(공식 MCP URL은 아래 안내 참조):</p>' +
-          '<div class="conn-code">' + escapeHtml(cmd) + '<button class="conn-copy" data-copy="' + escapeHtml(cmd) + '">복사</button></div>' +
-          '<a class="conn-link" href="' + CONNECTORS_HELP + '" target="_blank" rel="noopener">Claude 커넥터 공식 안내 &rarr;</a>';
+          '<p class="conn-step">Claude가 <b>' + escapeHtml(tool.name) + '</b>의 공식 원격 커넥터를 지원합니다. 서버 구축 없이 <b>로그인만</b> 하면 됩니다.</p>';
+        if (url) {
+          const cmd = 'claude mcp add --transport http ' + id + ' ' + url;
+          html +=
+            '<p class="conn-step"><b>방법 1 — CLI</b> (Claude Code): 아래 실행 후 브라우저에서 로그인·권한 승인</p>' +
+            '<div class="conn-code">' + escapeHtml(cmd) + '<button class="conn-copy" data-copy="' + escapeHtml(cmd) + '">복사</button></div>' +
+            '<p class="conn-step"><b>방법 2 — 앱</b>: Claude 데스크톱/웹의 <b>설정 &rarr; 커넥터</b>에서 \'' + escapeHtml(tool.name) + '\' 추가 후 로그인</p>';
+        } else {
+          html +=
+            '<p class="conn-step"><b>연결 방법</b>: Claude 데스크톱/Code의 <b>설정 &rarr; 커넥터(Connectors)</b>에서 \'' + escapeHtml(tool.name) + '\' 를 추가하고 로그인하세요.</p>' +
+            '<p class="conn-step" style="font-size:12px;">이 도구의 공식 원격 MCP URL은 계정/리전별로 다르거나 공개되어 있지 않아, 커넥터 디렉터리에서 추가하는 방식이 정확합니다.</p>';
+        }
+        html += '<a class="conn-link" href="' + CONNECTORS_HELP + '" target="_blank" rel="noopener">Claude 커넥터 공식 안내 &rarr;</a>';
       } else if (ci.route === 'unable') {
         html =
           '<span class="conn-route-tag conn-unable">현재 연동 불가</span>' +
@@ -2136,13 +2223,16 @@
         else if (ci.route === 'unable') cUnable++;
       });
       const ready = cConn + cBuild;
-      // 진단 → 설치 CLI 연결: 선택한 build 도구를 한 번에 설치하는 명령
-      const installCmd = buildIds.length ? ('npx github:fornerds/fornerds-connect --tools ' + buildIds.join(',')) : '';
-      const installBlock = buildIds.length ? `
+      // 진단 → 연동: Claude에 그대로 붙여넣는 프롬프트(핵심) + 터미널 직접 실행(보조)
+      const claudePrompt = ready ? generateClaudePrompt() : '';
+      const npxCmd = buildIds.length ? ('npx ' + CLI_SPEC + ' --tools ' + buildIds.join(',')) : '';
+      const actionBlock = ready ? `
         <div class="install-cta">
-          <div class="install-cta-head"><b>이 ${buildIds.length}개를 한 번에 설치</b> <span class="dim">— MCP 서버 제공 도구</span></div>
-          <div class="conn-code">${escapeHtml(installCmd)}<button class="conn-copy" data-copy="${escapeHtml(installCmd)}">복사</button></div>
-          <p class="install-cta-note">Claude Code가 설치된 PC에서 실행하면 도구 선택·키 입력·연동이 한 번에 끝납니다. 키는 PC에만 저장됩니다. <span class="dim">(현재 레포 내 실행: <b>node cli/index.mjs --tools ${escapeHtml(buildIds.join(','))}</b>)</span></p>
+          <div class="install-cta-head"><b>이제 Claude에 연동하세요</b> <span class="dim">— 선택한 ${ready}개를 바로 연결</span></div>
+          <p class="install-cta-note" style="margin:2px 0 10px;">아래 프롬프트를 복사해 <b>Claude(코워크 또는 Claude Code)</b>에 붙여넣으세요. Claude가 순서대로 연동을 진행하고, 키가 필요한 도구는 하나씩 물어봅니다.</p>
+          <div class="conn-code conn-code-block">${escapeHtml(claudePrompt)}</div>
+          <button class="conn-copy conn-copy-wide" data-copy="${escapeHtml(claudePrompt)}">프롬프트 복사 → Claude에 붙여넣기</button>
+          ${buildIds.length ? `<p class="install-cta-note">터미널을 선호하시면 이 명령도 동일하게 동작합니다: <b>${escapeHtml(npxCmd)}</b></p>` : ''}
         </div>` : '';
       const summary = `
         <div class="conn-summary">
@@ -2151,18 +2241,16 @@
           <div class="conn-stat"><div class="num">${cBuild}</div><div class="lbl">MCP 서버 제공</div></div>
           <div class="conn-stat"><div class="num">${cUnable}</div><div class="lbl">현재 연동 불가</div></div>
         </div>
+        ${actionBlock}
         <p class="conn-note">
-          <b style="color:#4ade80;">공식 커넥터</b> = 벤더가 제공하는 원격 커넥터에 로그인만 하면 연동(빌드 불필요).
-          <b style="color:#60a5fa;">MCP 서버 제공</b> = 우리가 만든 MCP 서버 + 키 발급 가이드(클릭하면 SETUP 열람).
-          <b style="color:var(--text-secondary);">연동 불가</b> = 공개 API가 없어 현재 자동 연동 불가(정직 표기).
+          <b style="color:#4ade80;">공식 커넥터</b> 로그인만 하면 연동 · <b style="color:#60a5fa;">MCP 서버 제공</b> 키 발급 후 연동(가이드 제공) · <b style="color:var(--text-secondary);">연동 불가</b> 공개 API 없음(정직 표기).
           ${hasUncertain ? '<br>* 표시: 키 발급 화면 안내가 미확인일 수 있어 실제 콘솔 확인을 권장합니다.' : ''}
-          <br><b style="color:var(--text-primary);">각 도구를 클릭</b>하면 실제 연동 방법(명령·로그인 안내·키 발급 가이드)이 열립니다.
-        </p>
-        ${installBlock}`;
+          <br>아래에서 <b style="color:var(--text-primary);">각 도구를 클릭</b>하면 그 도구의 연동 방법(명령·로그인·키 발급 가이드)을 따로 볼 수 있습니다.
+        </p>`;
 
       return `
-        <div class="section-heading">당신의 스택은 이렇게 연결됩니다</div>
-        <div class="section-sub">선택한 ${STATE.selectedTools.length}개 도구를 Claude에 어떻게 연동하는지 — 연동 방식과 준비 상태를 정리했습니다.</div>
+        <div class="section-heading">선택하신 도구, 이렇게 연결됩니다</div>
+        <div class="section-sub">${STATE.selectedTools.length}개 중 <b style="color:var(--text-primary);">${ready}개를 지금 Claude에 연동</b>할 수 있습니다. 아래 프롬프트 하나면 됩니다.</div>
         ${summary}
         ${rows}
       `;
