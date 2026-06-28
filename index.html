@@ -1,0 +1,2280 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI 전환 진단 - 맞춤형 솔루션 추천</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg-primary: #0a0a0a;
+      --bg-secondary: #111;
+      --border-light: #1e1e1e;
+      --border-medium: #2a2a2a;
+      --text-primary: #ffffff;
+      --text-secondary: #888888;
+      --accent: #ffffff;
+    }
+
+    body {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    body.light {
+      --bg-primary: #ffffff;
+      --bg-secondary: #f5f5f7;
+      --border-light: #e8e8ea;
+      --border-medium: #d4d4d8;
+      --text-primary: #18181b;
+      --text-secondary: #6b7280;
+      --accent: #18181b;
+    }
+
+    body.light .chip:hover {
+      border-color: #999;
+      color: #333;
+    }
+
+    header {
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-light);
+      padding: 16px 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .step-counter {
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+
+    .mode-toggle {
+      display: flex;
+      border: 1px solid var(--border-medium);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .mode-btn {
+      padding: 5px 12px;
+      background: var(--bg-secondary);
+      color: var(--text-secondary);
+      border: none;
+      border-radius: 0;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .mode-btn.active {
+      background: var(--accent);
+      color: var(--bg-primary);
+    }
+
+    .mode-hint {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin: -16px 0 20px;
+    }
+
+    .progress-bar {
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-light);
+      padding: 12px 0;
+      position: sticky;
+      top: 56px;
+      z-index: 99;
+    }
+
+    .progress-container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .progress-segments {
+      display: flex;
+      gap: 8px;
+      flex: 1;
+    }
+
+    .progress-segment {
+      flex: 1;
+      height: 3px;
+      background: var(--border-medium);
+      border-radius: 2px;
+      transition: background 0.3s ease;
+    }
+
+    .progress-segment.active {
+      background: var(--accent);
+    }
+
+    .progress-segment.completed {
+      background: var(--accent);
+      opacity: 0.5;
+    }
+
+    main {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 32px 20px;
+    }
+
+    .step {
+      animation: fadeUp 0.3s ease both;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(16px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .step-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      letter-spacing: -0.5px;
+    }
+
+    .step-subtitle {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+
+    .category-section {
+      margin-bottom: 24px;
+    }
+
+    .category-header {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+    }
+
+    .chip-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      padding: 8px 12px;
+      border: 1px solid var(--border-medium);
+      border-radius: 6px;
+      background: var(--bg-secondary);
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 13px;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+      font-weight: 500;
+    }
+
+    .chip:hover {
+      border-color: #555;
+      color: #aaa;
+    }
+
+    .chip.selected {
+      border-color: var(--accent);
+      background: var(--bg-secondary);
+      color: var(--accent);
+    }
+
+    .chip-add {
+      border-style: dashed;
+      border-color: var(--border-medium);
+      color: var(--text-secondary);
+    }
+
+    .chip-add:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .custom-input-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .custom-input-modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-light);
+      border-radius: 8px;
+      padding: 24px;
+      width: 90%;
+      max-width: 400px;
+      animation: fadeUp 0.3s ease;
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .modal-input {
+      width: 100%;
+      padding: 10px 12px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-medium);
+      border-radius: 6px;
+      color: var(--text-primary);
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+
+    .modal-input::placeholder {
+      color: var(--text-secondary);
+    }
+
+    .modal-input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 12px;
+    }
+
+    .modal-buttons button {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .modal-buttons .btn-confirm {
+      background: var(--accent);
+      color: var(--bg-primary);
+    }
+
+    .modal-buttons .btn-cancel {
+      background: var(--bg-primary);
+      border: 1px solid var(--border-medium);
+      color: var(--text-primary);
+    }
+
+    .button-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 32px;
+      align-items: center;
+    }
+
+    button {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: var(--bg-primary);
+      flex: 1;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      opacity: 0.9;
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      border: 1px solid var(--border-medium);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .btn-cta {
+      background: var(--accent);
+      color: var(--bg-primary);
+    }
+
+    .btn-cta:hover {
+      opacity: 0.9;
+    }
+
+    .selection-counter {
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .results-summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
+    .stat-pill {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-light);
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .stat-value {
+      display: block;
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .stat-label {
+      display: block;
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .rec-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-light);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 16px;
+      animation: fadeUp 0.3s ease both;
+    }
+
+    .rec-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+      gap: 12px;
+    }
+
+    .rec-solution {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .rec-badge {
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      white-space: nowrap;
+      font-weight: 600;
+    }
+
+    .badge-easy {
+      background: rgba(74, 222, 128, 0.15);
+      color: #4ade80;
+    }
+
+    .badge-medium {
+      background: rgba(251, 191, 36, 0.15);
+      color: #fbbf24;
+    }
+
+    .badge-hard {
+      background: rgba(239, 68, 68, 0.15);
+      color: #ef4444;
+    }
+
+    /* connector status (stack map) */
+    .conn-badge {
+      display: inline-block;
+      margin-left: 6px;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 1px 6px;
+      border-radius: 3px;
+      vertical-align: middle;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    a.conn-badge:hover { text-decoration: underline; }
+    .conn-connect { background: rgba(74, 222, 128, 0.15); color: #4ade80; }
+    .conn-build { background: rgba(96, 165, 250, 0.15); color: #60a5fa; }
+    .conn-unable { background: var(--border-medium); color: var(--text-secondary); }
+    .conn-summary {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 12px 0 18px;
+    }
+    .conn-stat {
+      flex: 1;
+      min-width: 110px;
+      padding: 12px 14px;
+      border: 1px solid var(--border-light);
+      border-radius: 6px;
+      background: var(--bg-secondary);
+    }
+    .conn-stat .num { font-size: 22px; font-weight: 700; color: var(--text-primary); }
+    .conn-stat .lbl { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+    .conn-note { font-size: 11px; color: var(--text-secondary); margin-top: 4px; line-height: 1.6; }
+    .install-cta { margin: 16px 0 6px; padding: 14px 16px; border: 1px solid var(--border-medium); border-radius: 8px; background: var(--bg-secondary); }
+    .install-cta-head { font-size: 14px; color: var(--text-primary); margin-bottom: 8px; }
+    .install-cta-head .dim, .install-cta-note .dim { color: var(--text-secondary); font-weight: 400; }
+    .install-cta-note { font-size: 11.5px; color: var(--text-secondary); margin: 8px 0 0; line-height: 1.6; }
+
+    .rec-meta {
+      display: flex;
+      gap: 16px;
+      font-size: 13px;
+      margin-bottom: 12px;
+      color: var(--text-secondary);
+    }
+
+    .rec-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .tag {
+      font-size: 11px;
+      padding: 4px 8px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-medium);
+      border-radius: 4px;
+      color: var(--text-secondary);
+    }
+
+    .tag-tool {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .rec-expand {
+      width: 100%;
+      padding: 8px 12px;
+      margin: 0;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-medium);
+      color: var(--text-secondary);
+      font-size: 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s ease;
+      font-weight: 500;
+    }
+
+    .rec-expand:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .rec-steps {
+      list-style-position: inside;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border-light);
+      font-size: 13px;
+      line-height: 1.8;
+      color: var(--text-secondary);
+    }
+
+    .rec-steps li {
+      margin-bottom: 8px;
+    }
+
+    .footer-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 32px;
+      flex-wrap: wrap;
+    }
+
+    .footer-actions button {
+      flex: 1;
+      min-width: 140px;
+    }
+
+    /* pain point input (step 2) */
+    .painpoint-section {
+      margin-top: 28px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border-light);
+    }
+
+    .painpoint-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .painpoint-label span {
+      color: var(--text-secondary);
+      font-weight: 500;
+      font-size: 12px;
+    }
+
+    .painpoint-hint {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+    }
+
+    .painpoint-input {
+      width: 100%;
+      min-height: 80px;
+      padding: 12px 14px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-medium);
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-size: 14px;
+      font-family: inherit;
+      line-height: 1.6;
+      resize: vertical;
+    }
+
+    .painpoint-input::placeholder { color: var(--text-secondary); }
+    .painpoint-input:focus { outline: none; border-color: var(--accent); }
+
+    /* results: pain echo */
+    .pain-echo {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-medium);
+      border-radius: 8px;
+      padding: 16px 18px;
+      margin-bottom: 24px;
+    }
+
+    .pain-echo .pain-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-secondary);
+    }
+
+    .pain-echo p {
+      font-size: 15px;
+      color: var(--text-primary);
+      margin: 8px 0 6px;
+      font-weight: 600;
+      line-height: 1.6;
+    }
+
+    .pain-echo .pain-foot { font-size: 12px; color: var(--text-secondary); }
+
+    /* results: section headings */
+    .section-heading {
+      font-size: 18px;
+      font-weight: 700;
+      margin: 32px 0 4px;
+      letter-spacing: -0.3px;
+    }
+
+    .section-sub {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    /* results: stack transformation map */
+    .stack-row {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-light);
+      border-radius: 8px;
+      padding: 16px 18px;
+      margin-bottom: 10px;
+    }
+
+    .stack-row-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .stack-cat { font-size: 14px; font-weight: 700; }
+
+    .stack-phase {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+
+    .stack-tools {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .stack-tool {
+      font-size: 12px;
+      padding: 3px 9px;
+      border: 1px solid var(--border-medium);
+      border-radius: 4px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: border-color .12s, color .12s;
+    }
+    .stack-tool:hover { border-color: var(--text-secondary); color: var(--text-primary); }
+
+    /* connector detail modal */
+    .conn-modal-content { max-width: 560px; max-height: 88vh; overflow-y: auto; text-align: left; }
+    .conn-modal-content .modal-title { margin-bottom: 4px; }
+    .conn-route-tag { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 3px; margin-bottom: 14px; }
+    .conn-step { font-size: 13.5px; color: var(--text-secondary); line-height: 1.65; margin: 0 0 12px; }
+    .conn-step b { color: var(--text-primary); font-weight: 600; }
+    .conn-code {
+      position: relative;
+      background: #000; border: 1px solid var(--border-medium); border-radius: 6px;
+      padding: 11px 12px; margin: 8px 0 14px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px; color: #e5e5e5; white-space: pre-wrap; word-break: break-all;
+    }
+    .conn-copy {
+      position: absolute; top: 6px; right: 6px;
+      font-size: 11px; padding: 2px 8px; border-radius: 4px;
+      background: var(--border-medium); color: var(--text-primary); border: none; cursor: pointer;
+    }
+    .conn-copy:hover { background: #3a3a3a; }
+    .conn-link {
+      display: inline-block; margin-top: 2px; font-size: 13px;
+      color: #60a5fa; text-decoration: none;
+    }
+    .conn-link:hover { text-decoration: underline; }
+    .conn-warn { font-size: 12px; color: #fbbf24; margin: 2px 0 12px; }
+
+    .stack-flow { font-size: 13px; color: var(--text-secondary); line-height: 1.7; }
+    .stack-flow b { color: var(--text-primary); font-weight: 600; }
+    .stack-flow .arrow { color: var(--text-secondary); margin: 0 6px; }
+
+    /* results: phase divider */
+    .phase-divider {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 28px 0 16px;
+    }
+
+    .phase-divider .pd-num {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--bg-primary);
+      background: var(--accent);
+      border-radius: 4px;
+      padding: 3px 8px;
+    }
+
+    .phase-divider .pd-title { font-size: 16px; font-weight: 700; }
+    .phase-divider .pd-count { font-size: 12px; color: var(--text-secondary); margin-left: auto; }
+
+    /* ============ PRINT / PDF REPORT ============ */
+    .print-only { display: none; }
+
+    #report-header .rh-eyebrow { font-size: 10pt; letter-spacing: 0.15em; color: #555; text-transform: uppercase; }
+    #report-header .rh-title { font-size: 21pt; font-weight: 800; margin: 6px 0 8px; letter-spacing: -0.5px; color: #111; line-height: 1.25; }
+    #report-header .rh-meta { font-size: 9.5pt; color: #555; }
+    #report-header .rh-rule { height: 1px; background: #cfcfcf; margin-top: 14px; }
+    #report-footer { margin-top: 24px; }
+    #report-footer .rf-rule { height: 1px; background: #cfcfcf; margin-bottom: 12px; }
+    #report-footer p { font-size: 9pt; color: #555; margin: 4px 0; line-height: 1.6; }
+    #report-footer b { color: #222; }
+
+    .report-company { margin-top: 28px; }
+    .report-company label { display: block; font-size: 13px; color: var(--text-secondary); margin-bottom: 8px; }
+    .report-company label span { font-size: 12px; }
+    .report-company input {
+      width: 100%; padding: 10px 12px; background: var(--bg-secondary);
+      border: 1px solid var(--border-medium); border-radius: 6px;
+      color: var(--text-primary); font-size: 14px; font-family: inherit;
+    }
+    .report-company input:focus { outline: none; border-color: var(--accent); }
+
+    @media print {
+      @page { margin: 16mm; }
+      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; transition: none !important; animation: none !important; }
+
+      /* Re-theme the design tokens to a clean light report so every element flips automatically */
+      body, body.light {
+        --bg-primary: #ffffff;
+        --bg-secondary: #ffffff;
+        --border-light: #e2e2e0;
+        --border-medium: #d4d4d4;
+        --text-primary: #111111;
+        --text-secondary: #555555;
+        --accent: #111111;
+      }
+      html, body { background: #ffffff !important; color: #111111 !important; }
+      body { font-size: 10.5pt; line-height: 1.55; }
+
+      header, .progress-bar, .footer-actions, .report-company,
+      .step-title, .step-subtitle, .rec-expand { display: none !important; }
+
+      main { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
+      .step { animation: none !important; }
+      .print-only { display: block !important; }
+
+      .results-summary { grid-template-columns: repeat(5, 1fr) !important; gap: 8px !important; margin: 14px 0 4px !important; }
+      .rec-card, .stack-row, .pain-echo, .stat-pill { box-shadow: none !important; }
+
+      /* achromatic badges (these use hardcoded colors, so override explicitly) */
+      .rec-badge, .stack-phase,
+      .badge-easy, .badge-medium, .badge-hard,
+      .conn-connect, .conn-build, .conn-unable { background: #eeeeeb !important; color: #222222 !important; border: 1px solid #d4d4d4 !important; }
+      .phase-divider .pd-num { background: #222222 !important; color: #ffffff !important; }
+      .tag-tool { border-color: #111111 !important; color: #111111 !important; }
+
+      .rec-steps[hidden] { display: block !important; }
+
+      .section-heading { margin-top: 20px !important; }
+      .rec-card, .stack-row { break-inside: avoid; page-break-inside: avoid; }
+      .phase-divider, .section-heading { break-after: avoid; page-break-after: avoid; }
+      #report-header { break-after: avoid; }
+    }
+    /* ============ /PRINT ============ */
+
+    /* lead capture modal */
+    .lead-modal-content { max-width: 460px; max-height: 90vh; overflow-y: auto; }
+    .lead-desc { font-size: 13px; color: var(--text-secondary); margin: -4px 0 16px; line-height: 1.5; }
+    .lead-field { margin-bottom: 12px; }
+    .lead-field label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; }
+    .lead-field .req { color: #e0726f; }
+    .lead-field .opt { color: var(--text-secondary); font-weight: 500; }
+    .lead-field .modal-input { margin-bottom: 0; }
+    .lead-row { display: flex; gap: 12px; }
+    .lead-row .lead-field { flex: 1; }
+    .modal-input.lead-textarea { min-height: 64px; resize: vertical; line-height: 1.5; }
+    .lead-note { font-size: 12px; color: #e0726f; margin: 2px 0 12px; min-height: 14px; }
+    .lead-copy { width: 100%; margin-top: 10px; background: var(--bg-primary); border: 1px solid var(--border-medium); color: var(--text-primary); padding: 10px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .lead-copy:hover { border-color: var(--accent); }
+    .lead-foot { font-size: 11px; color: var(--text-secondary); margin: 12px 0 0; line-height: 1.5; text-align: center; }
+
+    @media (max-width: 600px) {
+      .step-title {
+        font-size: 20px;
+      }
+
+      main {
+        padding: 20px 16px;
+      }
+
+      .header-container {
+        padding: 0 16px;
+      }
+
+      .progress-container {
+        padding: 0 16px;
+      }
+
+      .chip {
+        font-size: 12px;
+        padding: 6px 10px;
+      }
+
+      .results-summary {
+        grid-template-columns: 1fr;
+      }
+
+      button {
+        padding: 10px 16px;
+        font-size: 13px;
+      }
+
+      .button-group {
+        flex-direction: column;
+      }
+
+      .footer-actions {
+        flex-direction: column;
+      }
+
+      .footer-actions button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-container">
+      <div class="logo">AI 전환 진단</div>
+      <div class="mode-toggle">
+        <button class="mode-btn active" id="theme-dark">다크</button>
+        <button class="mode-btn" id="theme-light">라이트</button>
+      </div>
+      <div class="step-counter" id="step-counter">1 / 3</div>
+    </div>
+  </header>
+
+  <nav class="progress-bar">
+    <div class="progress-container">
+      <div class="progress-segments">
+        <div class="progress-segment active" style="order: 1;"></div>
+        <div class="progress-segment" style="order: 2;"></div>
+        <div class="progress-segment" style="order: 3;"></div>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <div id="step-1" class="step">
+      <h1 class="step-title">현재 사용 중인 업무 도구</h1>
+      <p class="step-subtitle">조직에서 현재 사용 중인 모든 도구를 선택해주세요</p>
+      <div id="tools-grid"></div>
+
+      <div class="button-group">
+        <div class="selection-counter" id="tools-count">0개 선택됨</div>
+        <button id="btn-next-1" class="btn-primary" disabled>다음</button>
+      </div>
+    </div>
+
+    <div id="step-2" class="step" style="display: none;">
+      <h1 class="step-title">AI 전환 목표</h1>
+      <p class="step-subtitle">AI로 자동화하고 싶은 업무 프로세스를 선택해주세요</p>
+      <div id="tasks-grid"></div>
+
+      <div class="painpoint-section">
+        <label class="painpoint-label" for="painpoint-input">가장 시간을 많이 뺏기는 일은 무엇인가요? <span>(선택)</span></label>
+        <p class="painpoint-hint">한 가지만 솔직하게 적어주세요. 진단 결과에서 이 업무를 최우선으로 다룹니다.</p>
+        <textarea id="painpoint-input" class="painpoint-input" placeholder="예: 매주 월요일 직원들 자료 취합해서 주간보고서 손으로 만드는 데 반나절씩 걸려요"></textarea>
+      </div>
+
+      <div class="button-group">
+        <button id="btn-back-2" class="btn-secondary">이전</button>
+        <div style="flex: 1;">
+          <div class="selection-counter" id="tasks-count">0개 선택됨</div>
+        </div>
+        <button id="btn-next-2" class="btn-primary" disabled>결과보기</button>
+      </div>
+    </div>
+
+    <div id="step-3" class="step" style="display: none;">
+      <div id="report-header" class="print-only">
+        <div class="rh-eyebrow">AI 전환 진단 리포트</div>
+        <div class="rh-title" id="rh-title">AI 전환 로드맵</div>
+        <div class="rh-meta" id="rh-date"></div>
+        <div class="rh-rule"></div>
+      </div>
+
+      <h1 class="step-title">AI 전환 진단 결과</h1>
+      <p class="step-subtitle">선택한 스택을 기반으로, 지금 바로 되는 것부터 개발이 필요한 것까지 정리한 전환 로드맵입니다.</p>
+      <div id="results-cards"></div>
+
+      <div class="report-company">
+        <label for="company-input">리포트에 표시할 회사명 <span>(선택)</span></label>
+        <input type="text" id="company-input" placeholder="예: 주식회사 스퀘어원">
+      </div>
+
+      <div class="footer-actions">
+        <button id="btn-reset" class="btn-secondary">처음부터</button>
+        <button id="btn-pdf" class="btn-secondary">진단 리포트 PDF 저장</button>
+        <button id="btn-consult" class="btn-cta">전문가 상담 신청</button>
+      </div>
+
+      <div id="report-footer" class="print-only">
+        <div class="rf-rule"></div>
+        <p>이 리포트는 선택하신 도구·업무를 기반으로 생성한 AI 전환 진단 결과입니다. 실제 도입 범위·일정·비용은 상담을 통해 확정됩니다.</p>
+        <p><b>주식회사 포너즈 (Fornerds)</b> · 한동민 · 010-4689-2880 · fornerdsofficial@gmail.com</p>
+      </div>
+    </div>
+  </main>
+
+  <div id="custom-modal" class="custom-input-modal">
+    <div class="modal-content">
+      <div class="modal-title" id="modal-title">도구명 입력</div>
+      <input type="text" id="custom-input" class="modal-input" placeholder="예: 우리사 자체 ERP">
+      <div class="modal-buttons">
+        <button class="btn-cancel" onclick="closeCustomModal()">취소</button>
+        <button class="btn-confirm" onclick="addCustomTool()">추가</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="conn-modal" class="custom-input-modal">
+    <div class="modal-content conn-modal-content">
+      <div class="modal-title" id="conn-modal-title">도구 연동</div>
+      <div id="conn-modal-body"></div>
+      <div class="modal-buttons">
+        <button class="btn-cancel" id="conn-modal-close">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="lead-modal" class="custom-input-modal">
+    <div class="modal-content lead-modal-content">
+      <div class="modal-title">전문가 상담 신청</div>
+      <p class="lead-desc">아래 정보를 남겨주시면 진단 결과와 함께 빠르게 회신드립니다. 위에서 선택하신 도구·업무 진단 내용이 함께 전달됩니다.</p>
+
+      <div class="lead-field">
+        <label>회사명 <span class="req">*</span></label>
+        <input type="text" id="lead-company" class="modal-input" placeholder="예: 주식회사 스퀘어원">
+      </div>
+      <div class="lead-row">
+        <div class="lead-field">
+          <label>담당자</label>
+          <input type="text" id="lead-name" class="modal-input" placeholder="이름">
+        </div>
+        <div class="lead-field">
+          <label>연락처</label>
+          <input type="tel" id="lead-phone" class="modal-input" placeholder="010-0000-0000">
+        </div>
+      </div>
+      <div class="lead-field">
+        <label>이메일 <span class="req">*</span></label>
+        <input type="email" id="lead-email" class="modal-input" placeholder="name@company.com">
+      </div>
+      <div class="lead-field">
+        <label>문의 내용 <span class="opt">(선택)</span></label>
+        <textarea id="lead-message" class="modal-input lead-textarea" placeholder="가장 시간을 많이 뺏기는 업무, 도입 희망 시점 등"></textarea>
+      </div>
+
+      <p class="lead-note" id="lead-error"></p>
+      <div class="modal-buttons">
+        <button class="btn-cancel" id="lead-cancel">취소</button>
+        <button class="btn-confirm" id="lead-submit">상담 신청 보내기</button>
+      </div>
+      <button class="lead-copy" id="lead-copy">내용 복사하기</button>
+      <p class="lead-foot">메일 앱이 열리지 않으면 ‘내용 복사하기’ 후 카카오톡·메일로 보내주세요 · fornerdsofficial@gmail.com</p>
+    </div>
+  </div>
+
+  <script>
+    const TOOLS = [
+      { id: 'kakaotalk_biz', name: '카카오톡', category: 'communication' },
+      { id: 'teams', name: 'Microsoft Teams', category: 'communication' },
+      { id: 'slack', name: 'Slack', category: 'communication' },
+      { id: 'jandi', name: '잔디', category: 'communication' },
+      { id: 'kakao_work', name: '카카오 워크', category: 'communication' },
+      { id: 'line_works', name: '네이버웍스(LINE WORKS)', category: 'communication' },
+      { id: 'zoom', name: 'Zoom', category: 'communication' },
+      { id: 'google_meet', name: 'Google Meet', category: 'communication' },
+      { id: 'webex', name: 'Cisco Webex', category: 'communication' },
+      { id: 'discord', name: 'Discord', category: 'communication' },
+      { id: 'skype', name: 'Skype', category: 'communication' },
+      { id: 'band', name: '밴드', category: 'communication' },
+      { id: 'flo', name: '플로우(flow.team)', category: 'communication' },
+
+      { id: 'hiworks', name: '하이웍스', category: 'groupware' },
+      { id: 'bizboxalpha', name: '비즈박스알파(더존)', category: 'groupware' },
+      { id: 'daouoffice', name: '다우오피스', category: 'groupware' },
+
+      { id: 'gmail', name: 'Gmail', category: 'email' },
+      { id: 'outlook', name: 'Outlook', category: 'email' },
+      { id: 'naver_mail', name: '네이버 메일', category: 'email' },
+      { id: 'kakao_mail', name: '카카오 메일', category: 'email' },
+
+      { id: 'notion', name: 'Notion', category: 'pm' },
+      { id: 'confluenece', name: 'Confluence', category: 'pm' },
+      { id: 'jira', name: 'Jira', category: 'pm' },
+      { id: 'jira_cloud', name: 'Jira Cloud', category: 'pm' },
+      { id: 'trello', name: 'Trello', category: 'pm' },
+      { id: 'asana', name: 'Asana', category: 'pm' },
+      { id: 'monday', name: 'Monday.com', category: 'pm' },
+      { id: 'clickup', name: 'ClickUp', category: 'pm' },
+      { id: 'smartsheet', name: 'Smartsheet', category: 'pm' },
+      { id: 'airtable', name: 'Airtable', category: 'pm' },
+      { id: 'linear', name: 'Linear', category: 'pm' },
+      { id: 'basecamp', name: 'Basecamp', category: 'pm' },
+      { id: 'azure_devops', name: 'Azure DevOps', category: 'pm' },
+      { id: 'loom', name: 'Loom', category: 'pm' },
+      { id: 'todoist', name: 'Todoist', category: 'pm' },
+
+      { id: 'ms365', name: 'Microsoft 365', category: 'office' },
+      { id: 'google_workspace', name: 'Google Workspace', category: 'office' },
+      { id: 'google_drive', name: '구글 드라이브', category: 'office' },
+      { id: 'google_calendar', name: '구글 캘린더', category: 'office' },
+      { id: 'onedrive', name: 'OneDrive', category: 'office' },
+      { id: 'sharepoint', name: 'SharePoint', category: 'office' },
+      { id: 'dropbox', name: 'Dropbox', category: 'office' },
+      { id: 'hangul_office', name: '한글과컴퓨터', category: 'office' },
+      { id: 'hancomworks', name: '한컴독스', category: 'office' },
+      { id: 'canva', name: 'Canva', category: 'office' },
+      { id: 'onlyoffice', name: 'OnlyOffice', category: 'office' },
+
+      { id: 'salesforce', name: 'Salesforce', category: 'crm' },
+      { id: 'pipedrive', name: 'Pipedrive', category: 'crm' },
+      { id: 'hubspot', name: 'HubSpot', category: 'crm' },
+      { id: 'zoho_crm', name: 'Zoho CRM', category: 'crm' },
+      { id: 'streak', name: 'Streak', category: 'crm' },
+      { id: 'braze', name: 'Braze', category: 'crm' },
+      { id: 'active_campaign', name: 'ActiveCampaign', category: 'crm' },
+      { id: 'notifly', name: '노티플라이(Notifly)', category: 'crm' },
+      { id: 'flarelane', name: '플레어레인(FlareLane)', category: 'crm' },
+      { id: 'bigin', name: '빅인(Bigin)', category: 'crm' },
+      { id: 'hackle', name: '핵클(Hackle)', category: 'crm' },
+
+      { id: 'workday', name: 'Workday', category: 'hr' },
+      { id: 'sap_sf', name: 'SAP SuccessFactors', category: 'hr' },
+      { id: 'saramin_hrm', name: '사람인 HRM', category: 'hr' },
+      { id: 'bamboohr', name: 'BambooHR', category: 'hr' },
+      { id: 'jobplanet', name: '잡플래닛', category: 'hr' },
+      { id: 'greeting', name: '그리팅(Greeting)', category: 'hr' },
+      { id: 'flex', name: 'Flex', category: 'hr' },
+
+      { id: 'douzone_erp', name: '더존 ERP', category: 'finance' },
+      { id: 'wehago', name: '위하고(WEHAGO)', category: 'finance' },
+      { id: 'sap_erp', name: 'SAP ERP', category: 'finance' },
+      { id: 'oracle_erp', name: 'Oracle ERP', category: 'finance' },
+      { id: 'kclep', name: '케이랩(KcLep)', category: 'finance' },
+      { id: 'hometax', name: '홈택스(국세청)', category: 'finance' },
+      { id: 'gyeongni', name: '경리나라', category: 'finance' },
+      { id: 'cashnote', name: '캐시노트', category: 'finance' },
+      { id: 'smartbill', name: '스마트빌(전자세금계산서)', category: 'finance' },
+      { id: 'barobill', name: '바로빌(전자세금계산서)', category: 'finance' },
+      { id: 'toss_business', name: 'Toss Business', category: 'finance' },
+      { id: 'wave', name: 'Wave', category: 'finance' },
+      { id: 'xero', name: 'Xero', category: 'finance' },
+
+      { id: 'ga', name: 'Google Analytics', category: 'analytics' },
+      { id: 'ga_studio', name: '구글 데이터 스튜디오', category: 'analytics' },
+      { id: 'naver_analytics', name: '네이버 애널리틱스', category: 'analytics' },
+      { id: 'looker', name: 'Looker Studio', category: 'analytics' },
+      { id: 'tableau', name: 'Tableau', category: 'analytics' },
+      { id: 'powerbi', name: 'Power BI', category: 'analytics' },
+      { id: 'amplitude', name: 'Amplitude', category: 'analytics' },
+      { id: 'mixpanel', name: 'Mixpanel', category: 'analytics' },
+      { id: 'hotjar', name: 'Hotjar', category: 'analytics' },
+      { id: 'metabase', name: 'Metabase', category: 'analytics' },
+      { id: 'redash', name: 'Redash', category: 'analytics' },
+
+      { id: 'zendesk', name: 'Zendesk', category: 'support' },
+      { id: 'freshdesk', name: 'Freshdesk', category: 'support' },
+      { id: 'intercom', name: 'Intercom', category: 'support' },
+      { id: 'channeltalk', name: '채널톡', category: 'support' },
+      { id: 'happytalk', name: '해피톡', category: 'support' },
+
+      { id: 'zapier', name: 'Zapier', category: 'automation' },
+      { id: 'make', name: 'Make (Integromat)', category: 'automation' },
+      { id: 'ifttt', name: 'IFTTT', category: 'automation' },
+      { id: 'n8n', name: 'n8n', category: 'automation' },
+      { id: 'retool', name: 'Retool', category: 'automation' },
+      { id: 'slack_workflow', name: 'Slack Workflow', category: 'automation' },
+
+      { id: 'remember', name: '리멤버(Remember)', category: 'sales' },
+      { id: 'fingersales', name: '핑거세일즈', category: 'sales' },
+      { id: 'salesmap', name: '세일즈맵', category: 'sales' },
+      { id: 'plug', name: '플러그(Plug)', category: 'sales' },
+      { id: 'hanbiro_crm', name: '한비로 CRM', category: 'sales' },
+      { id: 'dynamics_crm', name: 'MS Dynamics 365', category: 'sales' },
+
+      { id: 'kakao_channel', name: '카카오톡 채널', category: 'channel' },
+      { id: 'kakao_bizmsg', name: '카카오 비즈메시지(알림톡/친구톡)', category: 'channel' },
+      { id: 'naver_talktalk', name: '네이버 톡톡', category: 'channel' },
+      { id: 'naver_smartplace', name: '네이버 스마트플레이스', category: 'channel' },
+      { id: 'instagram_biz', name: '인스타그램 비즈니스', category: 'channel' },
+      { id: 'meta_biz', name: '메타 비즈니스 스위트', category: 'channel' },
+      { id: 'daangn_biz', name: '당근비즈니스', category: 'channel' },
+      { id: 'youtube_studio', name: '유튜브 스튜디오', category: 'channel' },
+      { id: 'kakao_moment', name: '카카오모먼트(카카오 광고)', category: 'channel' },
+      { id: 'naver_ad', name: '네이버 광고(파워링크/GFA)', category: 'channel' },
+      { id: 'google_ads', name: '구글애즈(Google Ads)', category: 'channel' },
+      { id: 'meta_ads', name: '메타 광고관리자', category: 'channel' },
+      { id: 'tiktok_biz', name: '틱톡 비즈니스', category: 'channel' },
+
+      { id: 'aligo', name: '알리고', category: 'messaging' },
+      { id: 'ppurio', name: '뿌리오', category: 'messaging' },
+      { id: 'solapi', name: '솔라피(SOLAPI)', category: 'messaging' },
+      { id: 'naver_sens', name: '네이버 클라우드 SENS', category: 'messaging' },
+      { id: 'stibee', name: '스티비(Stibee)', category: 'messaging' },
+      { id: 'mailchimp', name: 'Mailchimp', category: 'messaging' },
+      { id: 'socialbiz', name: '소셜비즈(인스타 DM 자동화)', category: 'channel' },
+      { id: 'manychat', name: '매니챗(Manychat)', category: 'messaging' },
+      { id: 'sendbird', name: '센드버드(Sendbird)', category: 'messaging' },
+      { id: 'firebase_fcm', name: 'Firebase(FCM) 푸시', category: 'messaging' },
+      { id: 'onesignal', name: 'OneSignal', category: 'messaging' },
+
+      { id: 'cafe24', name: '카페24', category: 'ecommerce' },
+      { id: 'smartstore', name: '네이버 스마트스토어', category: 'ecommerce' },
+      { id: 'makeshop', name: '메이크샵', category: 'ecommerce' },
+      { id: 'godoshopping', name: '고도몰', category: 'ecommerce' },
+      { id: 'shopify', name: 'Shopify', category: 'ecommerce' },
+
+      { id: 'google_forms', name: '구글폼', category: 'forms' },
+      { id: 'naver_forms', name: '네이버폼', category: 'forms' },
+      { id: 'opensurvey', name: '오픈서베이', category: 'forms' },
+      { id: 'typeform', name: 'Typeform', category: 'forms' },
+
+      { id: 'chatgpt', name: 'ChatGPT', category: 'ai' },
+      { id: 'claude_ai', name: 'Claude(클로드)', category: 'ai' },
+      { id: 'gemini', name: '제미나이(Gemini)', category: 'ai' },
+      { id: 'copilot', name: 'MS 코파일럿(Copilot)', category: 'ai' },
+      { id: 'clovax', name: '클로바X(CLOVA X)', category: 'ai' },
+      { id: 'wrtn', name: '뤼튼(wrtn)', category: 'ai' },
+      { id: 'perplexity', name: '퍼플렉시티(Perplexity)', category: 'ai' },
+      { id: 'clovanote', name: '클로바노트(CLOVA Note)', category: 'meeting' },
+      { id: 'daglo', name: '다글로(Daglo)', category: 'meeting' },
+      { id: 'tiro', name: '티로(Tiro)', category: 'meeting' },
+      { id: 'plaud', name: '플라우드(Plaud)', category: 'meeting' },
+      { id: 'gamma', name: '감마(Gamma)', category: 'ai' },
+      { id: 'midjourney', name: '미드저니(Midjourney)', category: 'ai' },
+
+      { id: 'dooray', name: '두레이(Dooray!)', category: 'groupware' },
+
+      { id: 'swit', name: '스윗(Swit)', category: 'communication' },
+      { id: 'remotemeeting', name: '리모트미팅(알서포트)', category: 'communication' },
+
+      { id: 'callabo', name: '콜라보(Callabo)', category: 'meeting' },
+      { id: 'sovoro', name: '소보로(Sovoro)', category: 'meeting' },
+
+      { id: 'ms_planner', name: 'MS Planner', category: 'pm' },
+
+      { id: 'power_automate', name: 'Power Automate', category: 'automation' },
+
+      { id: 'coupang_wing', name: '쿠팡 윙(WING)', category: 'ecommerce' },
+      { id: 'st11_seller', name: '11번가 셀러오피스', category: 'ecommerce' },
+      { id: 'esmplus', name: 'ESM플러스(지마켓·옥션)', category: 'ecommerce' },
+      { id: 'sabangnet', name: '사방넷(OMS)', category: 'ecommerce' },
+      { id: 'playauto', name: '플레이오토(OMS)', category: 'ecommerce' },
+      { id: 'ezadmin', name: '이지어드민(OMS)', category: 'ecommerce' },
+      { id: 'imweb', name: '아임웹(imweb)', category: 'ecommerce' },
+      { id: 'sixshop', name: '식스샵(sixshop)', category: 'ecommerce' },
+
+      { id: 'kakaosync', name: '카카오싱크', category: 'crm' },
+      { id: 'groobee', name: '그루비(groobee)', category: 'crm' },
+
+      { id: 'mobon', name: '모비온(mobon)', category: 'channel' },
+
+      { id: 'walla', name: '왈라(Walla)', category: 'forms' },
+
+      { id: 'bizplay', name: '비즈플레이(경비/법인카드)', category: 'finance' },
+      { id: 'younglimwon', name: '영림원 K-System', category: 'finance' },
+      { id: 'tosspayments', name: '토스페이먼츠(PG)', category: 'finance' },
+
+      { id: 'danbee', name: '단비ai', category: 'support' },
+
+      { id: 'datarize', name: '데이터라이즈(Datarize)', category: 'analytics' },
+
+      { id: 'shiftee', name: '시프티(Shiftee)', category: 'hr' },
+      { id: 'albam', name: '뉴플로이(구 알밤)', category: 'hr' },
+      { id: 'jobda', name: '잡다(JOBDA)', category: 'hr' },
+      { id: 'wanted', name: '원티드(Wanted)', category: 'hr' },
+      { id: 'jobkorea', name: '잡코리아', category: 'hr' },
+
+      { id: 'modusign', name: '모두싸인', category: 'contract' },
+      { id: 'ucansign', name: '유캔싸인', category: 'contract' },
+      { id: 'docusign', name: 'DocuSign', category: 'contract' },
+
+      { id: 'ubcare', name: '유비케어 의사랑(의원 EMR)', category: 'vertical' },
+      { id: 'pm2000', name: 'PM2000(약국)', category: 'vertical' },
+      { id: 'okpos', name: 'OKPOS(외식·소매 POS)', category: 'vertical' },
+      { id: 'tossplace', name: '토스플레이스(POS)', category: 'vertical' },
+      { id: 'goodsen', name: '굿센 fERP(건설)', category: 'vertical' },
+      { id: 'semusarang', name: '세무사랑Pro(세무사 사무소)', category: 'vertical' },
+      { id: 'hwamulman', name: '화물맨(화물주선)', category: 'vertical' },
+      { id: 'lbox', name: '엘박스(LBOX, 법률 판례)', category: 'vertical' },
+    ];
+
+    const TOOL_CATEGORIES = [
+      { id: 'communication', label: '커뮤니케이션', tools: ['kakaotalk_biz','teams','slack','jandi','kakao_work','line_works','zoom','google_meet','webex','discord','skype','band','flo','swit','remotemeeting'] },
+      { id: 'meeting', label: '회의록/녹취', tools: ['clovanote','daglo','tiro','plaud','callabo','sovoro'] },
+      { id: 'groupware', label: '그룹웨어/전자결재', tools: ['dooray','hiworks','bizboxalpha','daouoffice'] },
+      { id: 'email', label: '이메일', tools: ['gmail','outlook','naver_mail','kakao_mail'] },
+      { id: 'pm', label: '프로젝트 관리', tools: ['notion','confluenece','jira','jira_cloud','trello','asana','monday','clickup','smartsheet','airtable','linear','basecamp','azure_devops','loom','todoist','ms_planner'] },
+      { id: 'office', label: '오피스/문서', tools: ['ms365','google_workspace','google_drive','google_calendar','onedrive','sharepoint','dropbox','hangul_office','hancomworks','canva','onlyoffice'] },
+      { id: 'contract', label: '계약/전자서명', tools: ['modusign','ucansign','docusign'] },
+      { id: 'crm', label: 'CRM / 마케팅 자동화', tools: ['salesforce','hubspot','pipedrive','zoho_crm','braze','notifly','flarelane','bigin','hackle','active_campaign','kakaosync','groobee','streak'] },
+      { id: 'sales', label: '영업(Sales)', tools: ['remember','fingersales','salesmap','plug','hanbiro_crm','dynamics_crm'] },
+      { id: 'hr', label: '인사/HR/근태', tools: ['flex','shiftee','saramin_hrm','albam','greeting','wanted','jobkorea','jobda','jobplanet','workday','sap_sf','bamboohr'] },
+      { id: 'finance', label: '재무/회계/세무', tools: ['douzone_erp','wehago','younglimwon','kclep','hometax','gyeongni','cashnote','bizplay','smartbill','barobill','tosspayments','sap_erp','oracle_erp','toss_business','wave','xero'] },
+      { id: 'analytics', label: '분석', tools: ['ga','ga_studio','naver_analytics','looker','tableau','powerbi','amplitude','mixpanel','datarize','hotjar','metabase','redash'] },
+      { id: 'support', label: '고객 지원', tools: ['channeltalk','happytalk','danbee','zendesk','freshdesk','intercom'] },
+      { id: 'channel', label: '마케팅 채널', tools: ['kakao_channel','kakao_bizmsg','naver_talktalk','naver_smartplace','instagram_biz','meta_biz','daangn_biz','youtube_studio','kakao_moment','naver_ad','google_ads','meta_ads','tiktok_biz','mobon','socialbiz'] },
+      { id: 'messaging', label: '문자/메시지/푸시 마케팅', tools: ['aligo','ppurio','solapi','naver_sens','stibee','mailchimp','manychat','sendbird','firebase_fcm','onesignal'] },
+      { id: 'ecommerce', label: '이커머스/주문', tools: ['cafe24','smartstore','coupang_wing','st11_seller','esmplus','imweb','sixshop','makeshop','godoshopping','shopify','sabangnet','playauto','ezadmin'] },
+      { id: 'forms', label: '설문/폼', tools: ['google_forms','naver_forms','opensurvey','typeform','walla'] },
+      { id: 'ai', label: '생성형 AI', tools: ['chatgpt','claude_ai','gemini','copilot','clovax','wrtn','perplexity','midjourney','gamma'] },
+      { id: 'automation', label: '통합/자동화', tools: ['zapier','make','power_automate','ifttt','n8n','retool','slack_workflow'] },
+      { id: 'vertical', label: '산업 특화(업종별)', tools: ['ubcare','pm2000','okpos','tossplace','goodsen','semusarang','hwamulman','lbox'] },
+    ];
+
+    const TOOL_MAP = Object.fromEntries(TOOLS.map(t => [t.id, t]));
+
+    const TASKS = [
+      { id: 'meeting_summary', name: '회의 자동 요약', category: 'communication' },
+      { id: 'meeting_notes', name: '회의록 자동 작성', category: 'communication' },
+      { id: 'email_draft', name: '이메일 자동 작성', category: 'communication' },
+      { id: 'email_sort', name: '이메일 분류 및 우선순위', category: 'communication' },
+      { id: 'announcement', name: '공지사항 자동 작성', category: 'communication' },
+
+      { id: 'task_distribution', name: '업무 분배 자동화', category: 'task_mgmt' },
+      { id: 'schedule_entry', name: '일정 자동 등록', category: 'task_mgmt' },
+      { id: 'deadline_tracking', name: '마감일 모니터링', category: 'task_mgmt' },
+      { id: 'progress_report', name: '진행상황 자동 보고', category: 'task_mgmt' },
+
+      { id: 'report_gen', name: '보고서 자동 작성', category: 'documents' },
+      { id: 'doc_summary', name: '문서 요약', category: 'documents' },
+      { id: 'ppt_gen', name: 'PPT 자동 생성', category: 'documents' },
+      { id: 'contract_review', name: '계약서 검토', category: 'legal' },
+      { id: 'translation', name: '문서 번역', category: 'documents' },
+
+      { id: 'data_analysis', name: '데이터 분석 자동화', category: 'data' },
+      { id: 'kpi_dashboard', name: 'KPI 대시보드 생성', category: 'data' },
+      { id: 'market_research', name: '시장조사 자동화', category: 'data' },
+      { id: 'competitor_monitor', name: '경쟁사 분석', category: 'data' },
+
+      { id: 'auto_reply', name: '고객 응답 자동화', category: 'customer' },
+      { id: 'faq_gen', name: 'FAQ 자동 생성', category: 'customer' },
+      { id: 'feedback_analysis', name: '고객 피드백 분석', category: 'customer' },
+      { id: 'chatbot', name: '챗봇 구축', category: 'customer' },
+
+      { id: 'job_posting', name: '채용공고 작성', category: 'hr' },
+      { id: 'resume_screening', name: '이력서 자동 검토', category: 'hr' },
+      { id: 'onboarding', name: '온보딩 자동화', category: 'hr' },
+      { id: 'training_content', name: '교육자료 생성', category: 'hr' },
+
+      { id: 'expense_auto', name: '비용 정산 자동화', category: 'finance' },
+      { id: 'invoice_process', name: '인보이스 자동 처리', category: 'finance' },
+      { id: 'financial_report', name: '재무보고서 생성', category: 'finance' },
+      { id: 'budget_analysis', name: '예산 분석', category: 'finance' },
+
+      { id: 'content_gen', name: '콘텐츠 자동 생성', category: 'marketing' },
+      { id: 'sns_auto', name: 'SNS 관리 자동화', category: 'marketing' },
+      { id: 'ad_copy', name: '광고 카피 작성', category: 'marketing' },
+      { id: 'seo', name: 'SEO 최적화', category: 'marketing' },
+
+      { id: 'product_desc', name: '상품 상세설명 생성', category: 'commerce' },
+      { id: 'review_analysis', name: '리뷰/평판 분석', category: 'commerce' },
+      { id: 'order_cs', name: '주문/CS 문의 자동응대', category: 'commerce' },
+      { id: 'eapproval_summary', name: '전자결재 문서 요약/분류', category: 'documents' },
+      { id: 'knowledge_qa', name: '사내 지식 검색·질의응답(RAG)', category: 'documents' },
+
+      { id: 'proposal_gen', name: '제안서·견적서 자동 작성', category: 'sales' },
+      { id: 'sales_email', name: '영업 이메일·팔로업 자동화', category: 'sales' },
+      { id: 'lead_scoring', name: '리드 발굴·분석·스코어링', category: 'sales' },
+
+      { id: 'action_items', name: '회의 액션아이템 추출·배정', category: 'communication' },
+      { id: 'call_summary', name: '통화/상담 녹취 요약', category: 'communication' },
+      { id: 'thread_summary', name: '메신저 스레드 요약', category: 'communication' },
+      { id: 'email_reply', name: '이메일 자동 응답 초안', category: 'communication' },
+      { id: 'interpret', name: '다국어 회의 통역·자막', category: 'communication' },
+
+      { id: 'meeting_to_task', name: '회의록→업무 자동 생성', category: 'task_mgmt' },
+      { id: 'daily_briefing', name: '데일리·위클리 브리핑 자동 생성', category: 'task_mgmt' },
+      { id: 'voice_logging', name: '음성·메모로 업무 자동 기록', category: 'task_mgmt' },
+      { id: 'workflow_auto', name: '반복 수작업 자동화', category: 'task_mgmt' },
+
+      { id: 'doc_classify', name: '문서 자동 분류·태깅', category: 'documents' },
+      { id: 'proofreading', name: '문서 교정·윤문', category: 'documents' },
+      { id: 'form_fill', name: '양식·서식 자동 작성', category: 'documents' },
+      { id: 'manual_gen', name: '매뉴얼·가이드 자동 작성', category: 'documents' },
+
+      { id: 'sales_intel', name: '고객사 리서치·세일즈 인텔리전스', category: 'sales' },
+      { id: 'call_to_crm', name: '영업 통화 요약→CRM 입력', category: 'sales' },
+      { id: 'pipeline_analysis', name: '영업 파이프라인 분석', category: 'sales' },
+
+      { id: 'excel_auto', name: '엑셀·스프레드시트 자동 분석', category: 'data' },
+      { id: 'data_viz', name: '데이터 시각화·차트 생성', category: 'data' },
+      { id: 'anomaly_detect', name: '이상 탐지·알림', category: 'data' },
+      { id: 'forecasting', name: '수요·매출 예측', category: 'data' },
+      { id: 'survey_analysis', name: '설문 응답 분석', category: 'data' },
+
+      { id: 'ticket_routing', name: '상담 티켓 자동 분류·라우팅', category: 'customer' },
+      { id: 'voc_monitor', name: 'VOC·리뷰 모니터링', category: 'customer' },
+      { id: 'agent_assist', name: '상담사 실시간 어시스트', category: 'customer' },
+      { id: 'churn_predict', name: '고객 이탈 예측', category: 'customer' },
+
+      { id: 'interview_qa', name: '면접 질문 생성·평가 요약', category: 'hr' },
+      { id: 'perf_review', name: '인사평가·피드백 정리', category: 'hr' },
+      { id: 'hr_bot', name: '사내 HR 규정 Q&A 봇', category: 'hr' },
+      { id: 'jd_gen', name: '직무기술서 작성', category: 'hr' },
+
+      { id: 'bookkeeping', name: '전표 자동 분개', category: 'finance' },
+      { id: 'tax_reconcile', name: '세금계산서 대사', category: 'finance' },
+      { id: 'cashflow', name: '자금·현금흐름 분석', category: 'finance' },
+      { id: 'fraud_detect', name: '거래 이상·부정 탐지', category: 'finance' },
+
+      { id: 'email_marketing', name: '이메일 마케팅·뉴스레터', category: 'marketing' },
+      { id: 'ad_optimize', name: '광고 성과 분석·최적화', category: 'marketing' },
+      { id: 'segment_analysis', name: '고객 세그먼트 분석', category: 'marketing' },
+      { id: 'landing_copy', name: '랜딩페이지 카피', category: 'marketing' },
+      { id: 'image_gen', name: '마케팅 이미지·썸네일 생성', category: 'marketing' },
+
+      { id: 'product_classify', name: '상품 분류·태깅', category: 'commerce' },
+      { id: 'demand_forecast', name: '재고·수요 예측', category: 'commerce' },
+      { id: 'price_analysis', name: '가격 분석·추천', category: 'commerce' },
+
+      { id: 'contract_draft', name: '계약서·약관 자동 작성', category: 'legal' },
+      { id: 'compliance_check', name: '규정·컴플라이언스 점검', category: 'legal' },
+      { id: 'legal_research', name: '법률·판례 리서치', category: 'legal' },
+
+      { id: 'purchase_request', name: '구매요청·발주 자동 처리', category: 'procurement' },
+      { id: 'supplier_eval', name: '공급사 평가·비교', category: 'procurement' },
+      { id: 'quote_compare', name: '견적 비교·분석', category: 'procurement' },
+    ];
+
+    const TASK_CATEGORIES = [
+      { id: 'communication', label: '회의/커뮤니케이션', tasks: ['meeting_summary','meeting_notes','action_items','call_summary','thread_summary','email_draft','email_reply','email_sort','announcement','interpret'] },
+      { id: 'task_mgmt', label: '업무 관리', tasks: ['task_distribution','schedule_entry','deadline_tracking','progress_report','meeting_to_task','daily_briefing','voice_logging','workflow_auto'] },
+      { id: 'documents', label: '문서/보고서', tasks: ['report_gen','doc_summary','ppt_gen','translation','eapproval_summary','knowledge_qa','doc_classify','proofreading','form_fill','manual_gen'] },
+      { id: 'legal', label: '법무/계약', tasks: ['contract_review','contract_draft','compliance_check','legal_research'] },
+      { id: 'sales', label: '영업', tasks: ['proposal_gen','sales_email','lead_scoring','sales_intel','call_to_crm','pipeline_analysis'] },
+      { id: 'data', label: '데이터/분석', tasks: ['data_analysis','kpi_dashboard','excel_auto','data_viz','market_research','competitor_monitor','anomaly_detect','forecasting','survey_analysis'] },
+      { id: 'customer', label: '고객 서비스', tasks: ['auto_reply','faq_gen','chatbot','ticket_routing','feedback_analysis','voc_monitor','agent_assist','churn_predict'] },
+      { id: 'marketing', label: '마케팅', tasks: ['content_gen','sns_auto','ad_copy','seo','email_marketing','ad_optimize','segment_analysis','landing_copy','image_gen'] },
+      { id: 'hr', label: '인사/HR', tasks: ['job_posting','jd_gen','resume_screening','interview_qa','onboarding','training_content','perf_review','hr_bot'] },
+      { id: 'finance', label: '재무/회계', tasks: ['expense_auto','invoice_process','bookkeeping','tax_reconcile','financial_report','budget_analysis','cashflow','fraud_detect'] },
+      { id: 'commerce', label: '이커머스/리테일', tasks: ['product_desc','review_analysis','order_cs','product_classify','demand_forecast','price_analysis'] },
+      { id: 'procurement', label: '구매/조달', tasks: ['purchase_request','supplier_eval','quote_compare'] },
+    ];
+
+    const TASK_MAP = Object.fromEntries(TASKS.map(t => [t.id, t]));
+
+    const TASK_BASE_RECS = {
+      'meeting_summary': { solution: 'Claude API', timeSaving: '주 3-5시간', difficulty: 'medium', cost: '월 $20-50', steps: ['회의 녹음 자동화 설정', 'Claude API 통합', '팀 저장소에 자동 저장'] },
+      'meeting_notes': { solution: 'Claude API / Notion AI', timeSaving: '주 2-3시간', difficulty: 'easy', cost: '월 $10-30', steps: ['회의 녹취 수집', '자동 요약 생성', '조직원에게 배포'] },
+      'email_draft': { solution: 'Claude API', timeSaving: '주 2-4시간', difficulty: 'easy', cost: '월 $15-30', steps: ['주요 포인트 입력', '초안 자동 생성', '톤 및 표현 조정'] },
+      'email_sort': { solution: 'Zapier + Claude API', timeSaving: '주 2-3시간', difficulty: 'medium', cost: '월 $20-50', steps: ['자동화 규칙 설정', '지능형 분류 적용', '우선순위 인박스 구성'] },
+      'announcement': { solution: 'Claude API', timeSaving: '주 1-2시간', difficulty: 'easy', cost: '월 $10-20', steps: ['공지 내용 입력', '회사 톤으로 자동 작성', '배포'] },
+      'task_distribution': { solution: 'Zapier AI + Claude', timeSaving: '주 3-5시간', difficulty: 'medium', cost: '월 $30-80', steps: ['팀원 역량 정보 등록', 'AI가 할당 최적화 제안', '최종 승인 후 배정'] },
+      'schedule_entry': { solution: 'Zapier 자동화', timeSaving: '주 1-2시간', difficulty: 'easy', cost: '월 $20-50', steps: ['일정 요청 감지', '캘린더 자동 등록', '참석자 자동 초대'] },
+      'report_gen': { solution: 'Claude API', timeSaving: '주 4-6시간', difficulty: 'medium', cost: '월 $30-60', steps: ['데이터 소스 연결', '보고서 자동 생성', '표준 형식 내보내기'] },
+      'doc_summary': { solution: 'Claude API', timeSaving: '주 1-2시간', difficulty: 'easy', cost: '월 $10-30', steps: ['문서 업로드', '핵심 내용 추출', '요약본 배포'] },
+      'ppt_gen': { solution: 'Claude API + 자동화', timeSaving: '주 3-5시간', difficulty: 'hard', cost: '월 $40-100', steps: ['슬라이드 구성 정의', '콘텐츠 자동 생성', '회사 템플릿 적용'] },
+      'data_analysis': { solution: 'Claude API + 분석', timeSaving: '주 3-5시간', difficulty: 'hard', cost: '월 $30-80', steps: ['데이터 추출', '분석 파이프라인 실행', '인사이트 생성'] },
+      'content_gen': { solution: 'Claude API', timeSaving: '주 5-10시간', difficulty: 'easy', cost: '월 $20-50', steps: ['콘텐츠 주제 정의', '글/포스트 자동 작성', '편집 및 발행'] },
+      'chatbot': { solution: 'Claude API / 전문 AI', timeSaving: '주 10-15시간', difficulty: 'hard', cost: '월 $50-300', steps: ['대화 플로우 설계', '챗봇 배포', '지속적 개선'] },
+      'resume_screening': { solution: 'Claude API + 매칭', timeSaving: '주 3-5시간', difficulty: 'medium', cost: '월 $30-60', steps: ['지원자 수집', '자격요건 평가', '최종 명단 생성'] },
+      'feedback_analysis': { solution: 'Claude API + 감정분석', timeSaving: '주 2-4시간', difficulty: 'medium', cost: '월 $20-50', steps: ['피드백 수집', '감정 및 주제 분류', '개선안 리포트 생성'] },
+      'deadline_tracking': { solution: 'Zapier + Claude API', timeSaving: '주 1-2시간', difficulty: 'easy', cost: '월 $20-40', steps: ['프로젝트 도구 마감일 연동', '지연 위험 자동 감지', '담당자에게 알림 발송'] },
+      'progress_report': { solution: 'Claude API', timeSaving: '주 2-4시간', difficulty: 'medium', cost: '월 $20-50', steps: ['업무 도구 데이터 수집', '진행률 자동 요약 생성', '주간 리포트 배포'] },
+      'contract_review': { solution: 'Claude API', timeSaving: '주 3-5시간', difficulty: 'medium', cost: '월 $30-60', steps: ['계약서 업로드', '독소조항·리스크 자동 검토', '수정 의견 리포트 생성'] },
+      'translation': { solution: 'DeepL / Claude API', timeSaving: '주 2-4시간', difficulty: 'easy', cost: '월 $10-30', steps: ['문서 입력', '문맥 기반 자동 번역', '용어·톤 검수'] },
+      'kpi_dashboard': { solution: 'Claude API + BI 연동', timeSaving: '주 3-5시간', difficulty: 'hard', cost: '월 $40-100', steps: ['데이터 소스 연결', '지표 자동 집계', '대시보드 생성 및 코멘트'] },
+      'market_research': { solution: 'Perplexity / Claude API', timeSaving: '주 4-6시간', difficulty: 'medium', cost: '월 $30-60', steps: ['리서치 주제 정의', '자료 자동 수집·요약', '인사이트 리포트 생성'] },
+      'competitor_monitor': { solution: 'Claude API + 자동수집', timeSaving: '주 2-4시간', difficulty: 'medium', cost: '월 $30-70', steps: ['경쟁사 소스 등록', '변동사항 자동 모니터링', '주기적 비교 리포트'] },
+      'auto_reply': { solution: '채널톡 AI / Claude API', timeSaving: '주 5-10시간', difficulty: 'medium', cost: '월 $30-100', steps: ['문의 데이터 학습', '자동 응답 초안 생성', '상담사 검토 후 발송'] },
+      'faq_gen': { solution: 'Claude API', timeSaving: '주 2-3시간', difficulty: 'easy', cost: '월 $10-30', steps: ['상담 로그 수집', '반복 질문 자동 추출', 'FAQ 문서 생성'] },
+      'job_posting': { solution: 'Claude API', timeSaving: '주 1-2시간', difficulty: 'easy', cost: '월 $10-20', steps: ['직무 요건 입력', '채용공고 자동 작성', '채널별 톤 조정'] },
+      'onboarding': { solution: 'Claude API + 자동화', timeSaving: '주 2-4시간', difficulty: 'medium', cost: '월 $20-50', steps: ['온보딩 자료 정리', '맞춤 가이드 자동 생성', '체크리스트 자동 발송'] },
+      'training_content': { solution: 'Claude API', timeSaving: '주 3-5시간', difficulty: 'medium', cost: '월 $20-50', steps: ['교육 주제 정의', '커리큘럼·자료 자동 생성', '퀴즈·평가 문항 생성'] },
+      'expense_auto': { solution: '비즈플레이 + Claude API', timeSaving: '주 2-4시간', difficulty: 'medium', cost: '월 $20-50', steps: ['법인카드·영수증 연동', '항목 자동 분류', '지출결의서 자동 작성'] },
+      'invoice_process': { solution: 'Claude API + OCR', timeSaving: '주 3-5시간', difficulty: 'medium', cost: '월 $30-60', steps: ['인보이스 이미지 수집', '항목 자동 추출·대사', '회계 시스템 입력'] },
+      'financial_report': { solution: 'Claude API', timeSaving: '주 4-6시간', difficulty: 'medium', cost: '월 $30-70', steps: ['회계 데이터 연결', '재무제표 자동 요약', '경영진 보고서 생성'] },
+      'budget_analysis': { solution: 'Claude API', timeSaving: '주 2-4시간', difficulty: 'medium', cost: '월 $20-50', steps: ['예산·실적 데이터 수집', '편차 자동 분석', '대응안 리포트 생성'] },
+      'sns_auto': { solution: 'Claude API + 예약발행', timeSaving: '주 4-8시간', difficulty: 'easy', cost: '월 $20-50', steps: ['콘텐츠 캘린더 정의', '게시물 자동 생성', '채널별 예약 발행'] },
+      'ad_copy': { solution: 'Claude API', timeSaving: '주 3-5시간', difficulty: 'easy', cost: '월 $15-40', steps: ['타겟·상품 정보 입력', '카피 A/B안 자동 생성', '성과 기반 개선'] },
+      'seo': { solution: 'Claude API', timeSaving: '주 3-5시간', difficulty: 'medium', cost: '월 $20-50', steps: ['키워드 분석', 'SEO 콘텐츠 자동 작성', '메타·구조 최적화'] },
+      'product_desc': { solution: 'Claude API', timeSaving: '주 4-8시간', difficulty: 'easy', cost: '월 $20-50', steps: ['상품 정보·이미지 입력', '상세페이지 카피 자동 생성', '쇼핑몰 일괄 등록'] },
+      'review_analysis': { solution: 'Claude API + 감정분석', timeSaving: '주 3-5시간', difficulty: 'medium', cost: '월 $20-50', steps: ['리뷰·평점 데이터 수집', '감정·키워드 자동 분류', '개선 인사이트 리포트'] },
+      'order_cs': { solution: '채널톡 AI / Claude API', timeSaving: '주 5-10시간', difficulty: 'medium', cost: '월 $30-100', steps: ['주문·배송·문의 연동', '자주 묻는 문의 자동 응대', '상담사 에스컬레이션 분기'] },
+      'eapproval_summary': { solution: 'Claude API', timeSaving: '주 2-4시간', difficulty: 'medium', cost: '월 $20-50', steps: ['전자결재·게시판 문서 연동', '핵심 요약·유형 자동 분류', '담당자별 우선순위 정리'] },
+      'knowledge_qa': { solution: 'Claude API + RAG', timeSaving: '주 5-10시간', difficulty: 'hard', cost: '월 $50-150', steps: ['사내 문서·규정·드라이브 색인', '자연어 질의 시 근거 포함 답변', '권한별 접근 제어 적용'] },
+      'proposal_gen': { solution: 'Claude API', timeSaving: '주 4-8시간', difficulty: 'medium', cost: '월 $30-60', steps: ['고객·요건 정보 입력', '제안서·견적 초안 자동 생성', '템플릿·단가표 적용'] },
+      'sales_email': { solution: 'Claude API + CRM 연동', timeSaving: '주 3-6시간', difficulty: 'medium', cost: '월 $30-60', steps: ['리드 정보·맥락 수집', '맞춤 영업 이메일 생성', '팔로업 시퀀스 자동 발송'] },
+      'lead_scoring': { solution: 'Claude API + CRM', timeSaving: '주 3-5시간', difficulty: 'medium', cost: '월 $30-70', steps: ['리드·행동 데이터 수집', 'AI 우선순위·전환가능성 평가', '영업 담당 자동 배정'] },
+      'action_items': { solution: 'Claude API', timeSaving: '주 2-4시간', difficulty: 'easy', cost: '월 $15-40', steps: ['회의록·녹취 입력', '액션아이템 자동 추출', '담당자·기한 배정'] },
+      'call_summary': { solution: 'Claude API + STT', timeSaving: '주 3-5시간', difficulty: 'medium', cost: '월 $30-60', steps: ['통화 녹음 STT 변환', '핵심 내용 요약', 'CRM·기록 저장'] },
+      'thread_summary': { solution: 'Claude API', timeSaving: '주 2-3시간', difficulty: 'easy', cost: '월 $15-40', steps: ['슬랙·팀즈 스레드 연동', '논의 자동 요약', '결정사항 정리'] },
+      'email_reply': { solution: 'Claude API', timeSaving: '주 2-4시간', difficulty: 'easy', cost: '월 $15-30', steps: ['수신 메일 분석', '맥락 기반 답장 초안', '톤 조정 후 발송'] },
+      'interpret': { solution: 'Claude API + 번역', timeSaving: '주 2-4시간', difficulty: 'medium', cost: '월 $30-60', steps: ['회의 음성 실시간 인식', '다국어 자막·통역', '회의록 다국어 저장'] },
+      'meeting_to_task': { solution: 'Claude API', timeSaving: '주 3-5시간', difficulty: 'medium', cost: '월 $20-50', steps: ['회의록 입력', '업무 항목 자동 도출', '지라/노션 티켓 생성'] },
+      'daily_briefing': { solution: 'Claude API(커넥터)', timeSaving: '주 3-5시간', difficulty: 'medium', cost: '월 $30-80', steps: ['지라·캘린더·드라이브 연동', '현황 자동 요약 생성', '아침 브리핑 자동 발송'] },
+      'voice_logging': { solution: 'Claude API + STT', timeSaving: '주 3-6시간', difficulty: 'medium', cost: '월 $30-80', steps: ['음성·메모 입력', 'STT 변환·내용 분류', '업무 시스템 자동 기록'] },
+      'workflow_auto': { solution: 'Zapier/Make + Claude', timeSaving: '주 5-10시간', difficulty: 'medium', cost: '월 $30-80', steps: ['반복 업무 흐름 정의', '트리거·액션 설정', '자동 실행·모니터링'] },
+      'doc_classify': { solution: 'Claude API', timeSaving: '주 2-4시간', difficulty: 'easy', cost: '월 $15-40', steps: ['문서 수집', '유형·주제 자동 분류', '태그·폴더 자동 정리'] },
+      'proofreading': { solution: 'Claude API', timeSaving: '주 2-3시간', difficulty: 'easy', cost: '월 $10-30', steps: ['초안 입력', '맞춤법·문장 교정', '톤·일관성 윤문'] },
+      'form_fill': { solution: 'Claude API', timeSaving: '주 2-4시간', difficulty: 'easy', cost: '월 $15-40', steps: ['양식 템플릿 등록', '데이터 자동 매핑', '서식 자동 완성'] },
+      'manual_gen': { solution: 'Claude API', timeSaving: '주 3-5시간', difficulty: 'medium', cost: '월 $20-50', steps: ['업무 절차 입력', '매뉴얼·가이드 자동 작성', '버전 관리·배포'] },
+      'sales_intel': { solution: 'Perplexity / Claude API', timeSaving: '주 3-5시간', difficulty: 'medium', cost: '월 $30-60', steps: ['타겟 기업 정보 수집', '재무·뉴스·니즈 요약', '영업 브리프 생성'] },
+      'call_to_crm': { solution: 'Claude API + STT', timeSaving: '주 3-5시간', difficulty: 'medium', cost: '월 $30-60', steps: ['영업 통화 녹취', '핵심·다음단계 요약', 'CRM 자동 입력'] },
+      'pipeline_analysis': { solution: 'Claude API + CRM', timeSaving: '주 2-4시간', difficulty: 'medium', cost: '월 $30-70', steps: ['파이프라인 데이터 연동', '단계별 전환·병목 분석', '예측·액션 제안'] },
+      'excel_auto': { solution: 'Claude API', timeSaving: '주 3-6시간', difficulty: 'medium', cost: '월 $20-50', steps: ['스프레드시트 연동', '수식·피벗 자동 생성', '분석 결과 코멘트'] },
+      'data_viz': { solution: 'Claude API + BI', timeSaving: '주 2-4시간', difficulty: 'medium', cost: '월 $20-50', steps: ['데이터 입력', '적합 차트 자동 생성', '대시보드 구성'] },
+      'anomaly_detect': { solution: 'Claude API + 자동화', timeSaving: '주 2-4시간', difficulty: 'hard', cost: '월 $40-100', steps: ['지표 데이터 연동', '이상치 자동 감지', '실시간 알림 발송'] },
+      'forecasting': { solution: 'Claude API + 분석', timeSaving: '주 3-5시간', difficulty: 'hard', cost: '월 $40-100', steps: ['과거 데이터 수집', '수요·매출 예측 모델', '시나리오 리포트'] },
+      'survey_analysis': { solution: 'Claude API', timeSaving: '주 2-4시간', difficulty: 'easy', cost: '월 $15-40', steps: ['설문 응답 수집', '주관식 자동 분류·요약', '인사이트 리포트'] },
+      'ticket_routing': { solution: 'Claude API', timeSaving: '주 3-6시간', difficulty: 'medium', cost: '월 $30-60', steps: ['문의 데이터 연동', '유형·우선순위 자동 분류', '담당 부서 라우팅'] },
+      'voc_monitor': { solution: 'Claude API + 수집', timeSaving: '주 3-5시간', difficulty: 'medium', cost: '월 $30-70', steps: ['리뷰·SNS·문의 수집', '감정·이슈 자동 분석', '경보·리포트 생성'] },
+      'agent_assist': { solution: 'Claude API', timeSaving: '주 5-10시간', difficulty: 'medium', cost: '월 $40-100', steps: ['상담 맥락 실시간 분석', '답변·자료 추천', '상담사 화면 보조'] },
+      'churn_predict': { solution: 'Claude API + 분석', timeSaving: '주 3-5시간', difficulty: 'hard', cost: '월 $40-100', steps: ['고객 행동 데이터 수집', '이탈 위험 자동 스코어', '리텐션 액션 제안'] },
+      'interview_qa': { solution: 'Claude API', timeSaving: '주 2-4시간', difficulty: 'easy', cost: '월 $15-40', steps: ['직무·이력서 입력', '맞춤 면접 질문 생성', '면접 평가 요약'] },
+      'perf_review': { solution: 'Claude API', timeSaving: '주 2-4시간', difficulty: 'medium', cost: '월 $20-50', steps: ['성과·피드백 데이터 수집', '평가 초안 자동 정리', '편향 점검·코멘트'] },
+      'hr_bot': { solution: 'Claude API + RAG', timeSaving: '주 4-8시간', difficulty: 'medium', cost: '월 $40-100', steps: ['사내 규정·복지 문서 색인', '직원 문의 자동 응답', '인사팀 에스컬레이션'] },
+      'jd_gen': { solution: 'Claude API', timeSaving: '주 1-2시간', difficulty: 'easy', cost: '월 $10-30', steps: ['직무 요건 입력', '직무기술서 자동 작성', '직급·역량 정리'] },
+      'bookkeeping': { solution: '더존/케이랩 + Claude', timeSaving: '주 3-6시간', difficulty: 'medium', cost: '월 $30-70', steps: ['거래·증빙 연동', '계정과목 자동 분개', '회계 시스템 입력'] },
+      'tax_reconcile': { solution: '스마트빌/바로빌 + Claude', timeSaving: '주 2-4시간', difficulty: 'medium', cost: '월 $20-50', steps: ['전자세금계산서 수집', '매입·매출 자동 대사', '불일치 자동 플래그'] },
+      'cashflow': { solution: 'Claude API + 회계 연동', timeSaving: '주 2-4시간', difficulty: 'medium', cost: '월 $30-60', steps: ['계좌·거래 데이터 연동', '자금흐름 자동 분석', '부족 시점 경보'] },
+      'fraud_detect': { solution: 'Claude API + 분석', timeSaving: '주 2-4시간', difficulty: 'hard', cost: '월 $40-100', steps: ['거래 데이터 모니터링', '이상 패턴 자동 탐지', '검토 알림 발송'] },
+      'email_marketing': { solution: '스티비 + Claude API', timeSaving: '주 3-6시간', difficulty: 'easy', cost: '월 $20-50', steps: ['세그먼트·주제 정의', '뉴스레터 자동 작성', '발송·성과 추적'] },
+      'ad_optimize': { solution: 'Claude API + 광고 연동', timeSaving: '주 3-5시간', difficulty: 'medium', cost: '월 $30-70', steps: ['광고 성과 데이터 수집', '소재·타겟 분석', '개선안 자동 제안'] },
+      'segment_analysis': { solution: 'Claude API + CRM', timeSaving: '주 2-4시간', difficulty: 'medium', cost: '월 $30-60', steps: ['고객 데이터 연동', 'AI 세그먼트 자동 분류', '타겟 전략 제안'] },
+      'landing_copy': { solution: 'Claude API', timeSaving: '주 2-4시간', difficulty: 'easy', cost: '월 $15-40', steps: ['상품·타겟 입력', '랜딩 카피 A/B안 생성', '전환 기반 개선'] },
+      'image_gen': { solution: '미드저니 / Claude', timeSaving: '주 3-6시간', difficulty: 'easy', cost: '월 $20-60', steps: ['콘셉트·키워드 입력', 'AI 이미지·썸네일 생성', '브랜드 톤 적용'] },
+      'product_classify': { solution: 'Claude API', timeSaving: '주 2-4시간', difficulty: 'easy', cost: '월 $15-40', steps: ['상품 데이터 수집', '카테고리·속성 자동 분류', '태그·검색 최적화'] },
+      'demand_forecast': { solution: 'Claude API + 분석', timeSaving: '주 3-5시간', difficulty: 'hard', cost: '월 $40-100', steps: ['판매·재고 데이터 연동', '수요 예측 모델', '발주·재고 제안'] },
+      'price_analysis': { solution: 'Claude API + 수집', timeSaving: '주 2-4시간', difficulty: 'medium', cost: '월 $30-60', steps: ['경쟁·판매 데이터 수집', '가격 탄력성 분석', '최적가 추천'] },
+      'contract_draft': { solution: 'Claude API', timeSaving: '주 3-5시간', difficulty: 'medium', cost: '월 $30-60', steps: ['계약 유형·조건 입력', '표준 계약서·약관 자동 작성', '리스크 조항 점검'] },
+      'compliance_check': { solution: 'Claude API + RAG', timeSaving: '주 3-5시간', difficulty: 'hard', cost: '월 $40-100', steps: ['관련 법규·내규 색인', '문서·프로세스 준수 점검', '위반 위험 리포트'] },
+      'legal_research': { solution: '엘박스 / Claude API', timeSaving: '주 4-8시간', difficulty: 'medium', cost: '월 $40-100', steps: ['쟁점·사실관계 입력', '판례·법령 자동 검색', '근거 요약·정리'] },
+      'purchase_request': { solution: 'Claude API + 자동화', timeSaving: '주 2-4시간', difficulty: 'medium', cost: '월 $20-50', steps: ['구매요청 접수·분류', '승인 흐름 자동화', '발주서 자동 생성'] },
+      'supplier_eval': { solution: 'Claude API', timeSaving: '주 2-4시간', difficulty: 'medium', cost: '월 $30-60', steps: ['공급사 데이터·실적 수집', '단가·품질·납기 비교 평가', '추천 리포트 생성'] },
+      'quote_compare': { solution: 'Claude API', timeSaving: '주 2-3시간', difficulty: 'easy', cost: '월 $15-40', steps: ['견적서 수집·파싱', '항목별 자동 비교', '최적안 추천'] },
+    };
+
+    const TOOL_OVERRIDES = {
+      'kakaotalk_biz': {
+        'meeting_summary': { solution: 'KakaoTalk AI 요약', timeSaving: '주 2-3시간', difficulty: 'easy', cost: '월 $10-20', steps: ['카톡 비즈니스 AI 활성화', '회의 대화 요약 기능 사용', '결과 자동 저장'] },
+      },
+      'teams': {
+        'meeting_summary': { solution: 'Microsoft Copilot', timeSaving: '주 4-5시간', difficulty: 'easy', cost: '월 $30/user', steps: ['M365 Copilot 라이선스 구매', 'Teams 설정에서 활성화', '회의 후 자동 요약 확인'] },
+        'email_draft': { solution: 'Microsoft Copilot', timeSaving: '주 2-4시간', difficulty: 'easy', cost: '월 $30/user', steps: ['Outlook Copilot 사용', '메일 주제 입력', '자동 초안 생성 후 수정'] },
+      },
+      'slack': {
+        'meeting_summary': { solution: 'Slack AI', timeSaving: '주 3-5시간', difficulty: 'easy', cost: '월 $10/user 추가', steps: ['Slack AI 활성화', '요약 명령 사용', '자동 요약본 확인'] },
+      },
+      'ms365': {
+        'meeting_summary': { solution: 'Microsoft Copilot', timeSaving: '주 4-5시간', difficulty: 'easy', cost: '월 $30/user', steps: ['M365 Copilot 구매', '회의 녹화 활성화', '자동 요약 확인'] },
+        'report_gen': { solution: 'Microsoft Copilot', timeSaving: '주 4-6시간', difficulty: 'easy', cost: '월 $30/user', steps: ['Word Copilot 열기', '보고서 주제 입력', '완성 문서 생성'] },
+      },
+      'google_workspace': {
+        'meeting_summary': { solution: 'Google Gemini', timeSaving: '주 4-5시간', difficulty: 'easy', cost: '월 $20/user', steps: ['Gemini 라이선스 구매', 'Meet 자동 요약 활성화', '회의 후 요약본 자동 생성'] },
+        'email_draft': { solution: 'Google Gemini', timeSaving: '주 2-4시간', difficulty: 'easy', cost: '월 $20/user', steps: ['Gmail에서 Gemini 사용', '메일 주제 입력', '자동 작성'] },
+      },
+      'notion': {
+        'doc_summary': { solution: 'Notion AI', timeSaving: '주 1-2시간', difficulty: 'easy', cost: '월 $10/user 추가', steps: ['Ask AI 기능 사용', '요약 요청', '자동 요약본 생성'] },
+      },
+      'jandi': {
+        'meeting_summary': { solution: '잔디 AI 통합', timeSaving: '주 2-3시간', difficulty: 'medium', cost: '월 $15-30', steps: ['잔디 봇 설정', '회의 정보 입력', '자동 요약 생성'] },
+      },
+      'dooray': {
+        'meeting_summary': { solution: '두레이 AI', timeSaving: '주 3-4시간', difficulty: 'easy', cost: '월 $5-15/user', steps: ['두레이 AI 활성화', '회의·업무 데이터 연동', '자동 요약·정리 확인'] },
+        'eapproval_summary': { solution: '두레이 AI', timeSaving: '주 2-4시간', difficulty: 'easy', cost: '월 $5-15/user', steps: ['전자결재 문서 연동', 'AI 요약·분류 사용', '담당자 배포'] },
+      },
+      'clovanote': {
+        'meeting_summary': { solution: '클로바노트', timeSaving: '주 3-5시간', difficulty: 'easy', cost: '무료~월 $15', steps: ['클로바노트로 회의 녹음', '자동 요약·키워드 생성', '액션아이템 추출'] },
+        'meeting_notes': { solution: '클로바노트', timeSaving: '주 2-3시간', difficulty: 'easy', cost: '무료~월 $15', steps: ['녹취 자동 변환', 'AI 요약 생성', '회의록 공유'] },
+      },
+      'channeltalk': {
+        'auto_reply': { solution: '채널톡 AI(ALF)', timeSaving: '주 5-10시간', difficulty: 'easy', cost: '월 $40~/추가', steps: ['채널톡 AI 에이전트 설정', '과거 상담 학습', '자동 응대 운영'] },
+        'faq_gen': { solution: '채널톡 AI', timeSaving: '주 2-3시간', difficulty: 'easy', cost: '월 $40~', steps: ['상담 로그 분석', 'FAQ 자동 생성', '서포트봇 배포'] },
+      },
+      'gamma': {
+        'ppt_gen': { solution: '감마(Gamma)', timeSaving: '주 3-5시간', difficulty: 'easy', cost: '무료~월 $20', steps: ['주제·개요 입력', 'AI 슬라이드 자동 생성', '브랜드 테마 적용'] },
+      },
+      'salesforce': {
+        'data_analysis': { solution: 'Salesforce Einstein', timeSaving: '주 3-5시간', difficulty: 'medium', cost: '월 $50~/user', steps: ['Einstein 활성화', '영업 데이터 분석', '예측·추천 활용'] },
+      },
+      'hubspot': {
+        'content_gen': { solution: 'HubSpot Breeze AI', timeSaving: '주 4-8시간', difficulty: 'easy', cost: '월 $0~/플랜', steps: ['Breeze AI 활성화', '콘텐츠·이메일 자동 생성', 'CRM 연동 발송'] },
+      },
+      'bizplay': {
+        'expense_auto': { solution: '비즈플레이', timeSaving: '주 3-5시간', difficulty: 'easy', cost: '월 $3-10/user', steps: ['법인카드 자동 연동', '영수증 OCR·자동 분류', '지출결의 자동 작성'] },
+      },
+      'datarize': {
+        'review_analysis': { solution: '데이터라이즈', timeSaving: '주 3-5시간', difficulty: 'easy', cost: '문의', steps: ['쇼핑몰 데이터 연동', 'AI 고객 분석·세그먼트', '자동 캠페인 실행'] },
+      },
+    };
+
+    const METHODS = {
+      native: { label: 'SaaS 내장 AI 활용', phase: 1, desc: '이미 쓰는 도구의 기본 AI 기능(Microsoft Copilot·Gemini·Notion AI 등)을 켜서 바로 활용. 별도 도입·개발이 필요 없는 가장 빠른 시작점.', flow: ['도구의 AI 기능/라이선스 활성화', '회사 데이터·보안 정책에 맞게 설정', '실무 적용 및 사용 가이드 배포'] },
+      assistant: { label: '범용 AI 어시스턴트 활용', phase: 1, desc: 'ChatGPT·Claude·Gemini 같은 범용 AI에 사내 문서·데이터를 연결(커넥터·업로드)해 요약·작성·검색·분석. 코딩 없이 즉시 시작, 권한 범위 내에서만 접근.', flow: ['업무 문서·데이터를 AI에 연결(읽기 권한)', '접근 권한·보안 범위 설정', '업무 템플릿·프롬프트로 활용'] },
+      nocode: { label: '노코드 자동화', phase: 1, desc: 'Zapier·Make·Power Automate 같은 자동화 도구로 AI를 업무 흐름에 끼워 트리거 기반 반복 처리·정기 생성. 개발 없이 설정으로 구현.', flow: ['트리거·데이터 흐름 정의', 'AI 단계(분류·요약·생성) 연결', '자동 실행·결과 전달 운영'] },
+      custom: { label: '맞춤 개발·시스템 연동', phase: 2, desc: '사내 시스템에 맞춰 봇·앱·API 연동을 개발해 알림·자동 입력·양방향 처리. 개발 리소스와 기간이 필요.', flow: ['요구사항·데이터 흐름 정의', '봇/앱·API 개발 및 시스템 양방향 연동', '테스트·배포·운영'] },
+      platform: { label: '전용 AI 시스템 구축', phase: 2, desc: '실시간·예측·대규모 처리나 보안(온프레미스)이 필요하면 RAG·ML 파이프라인 등 전용 시스템을 구축. 인프라와 전문 개발이 필요.', flow: ['요구사항 정의 + 인프라 설계', '데이터 파이프라인·모델·연동 구축', '검증·배포·모니터링'] },
+    };
+
+    const TASK_METHOD = {
+      meeting_summary:'assistant', meeting_notes:'assistant', action_items:'assistant', call_summary:'assistant', thread_summary:'assistant', email_draft:'assistant', email_reply:'assistant', email_sort:'nocode', announcement:'assistant', interpret:'assistant',
+      task_distribution:'nocode', schedule_entry:'nocode', deadline_tracking:'nocode', progress_report:'nocode', meeting_to_task:'nocode', daily_briefing:'nocode', voice_logging:'custom', workflow_auto:'nocode',
+      report_gen:'assistant', doc_summary:'assistant', ppt_gen:'assistant', translation:'assistant', eapproval_summary:'assistant', knowledge_qa:'assistant', doc_classify:'assistant', proofreading:'assistant', form_fill:'assistant', manual_gen:'assistant',
+      contract_review:'assistant', contract_draft:'assistant', compliance_check:'assistant', legal_research:'assistant',
+      proposal_gen:'assistant', sales_email:'custom', lead_scoring:'platform', sales_intel:'assistant', call_to_crm:'custom', pipeline_analysis:'platform',
+      data_analysis:'assistant', kpi_dashboard:'assistant', excel_auto:'assistant', data_viz:'assistant', market_research:'assistant', competitor_monitor:'assistant', anomaly_detect:'platform', forecasting:'platform', survey_analysis:'assistant',
+      auto_reply:'custom', faq_gen:'assistant', chatbot:'platform', ticket_routing:'nocode', feedback_analysis:'assistant', voc_monitor:'nocode', agent_assist:'platform', churn_predict:'platform',
+      content_gen:'assistant', sns_auto:'nocode', ad_copy:'assistant', seo:'assistant', email_marketing:'nocode', ad_optimize:'platform', segment_analysis:'platform', landing_copy:'assistant', image_gen:'assistant',
+      job_posting:'assistant', jd_gen:'assistant', resume_screening:'assistant', interview_qa:'assistant', onboarding:'nocode', training_content:'assistant', perf_review:'assistant', hr_bot:'custom',
+      expense_auto:'platform', invoice_process:'platform', bookkeeping:'platform', tax_reconcile:'platform', financial_report:'assistant', budget_analysis:'assistant', cashflow:'platform', fraud_detect:'platform',
+      product_desc:'assistant', review_analysis:'assistant', order_cs:'custom', product_classify:'assistant', demand_forecast:'platform', price_analysis:'platform',
+      purchase_request:'nocode', supplier_eval:'assistant', quote_compare:'assistant',
+    };
+
+    // 카테고리별 AI 전환 전략 — 선택한 "모든" 도구가 결과에 반영되도록 하는 매핑.
+    // connect: AI를 이 도구군에 어떻게 연결하나 / transform: 그래서 무엇이 바뀌나 / phase: 통상 1=즉시, 2=연동·개발
+    const CATEGORY_TRANSFORM = {
+      communication: { connect: 'AI 커넥터·봇으로 대화/회의 채널 연결', transform: '스레드·회의 자동 요약, 액션아이템 추출, 알림 푸시', phase: 1 },
+      meeting:       { connect: 'STT로 녹취를 텍스트로 변환', transform: '회의 요약·할 일 자동 생성 후 업무도구로 전달', phase: 1 },
+      groupware:     { connect: '전자결재·게시판 문서를 AI에 연결', transform: '결재문서 요약·분류, 사내지식 검색(RAG)의 소스', phase: 1 },
+      email:         { connect: '메일함을 읽기 권한으로 AI에 연결', transform: '수신메일 분류·우선순위, 답장 초안 자동 생성', phase: 1 },
+      pm:            { connect: '이슈·일정을 커넥터로 양방향 연결', transform: '진행상황 브리핑·보고서 생성, 회의록→티켓 자동화', phase: 1 },
+      office:        { connect: '드라이브·문서를 지식 소스로 연결', transform: '문서 요약·작성·번역, 서식 자동완성', phase: 1 },
+      contract:      { connect: '계약 문서를 AI 검토에 연결', transform: '독소조항 검토, 표준 계약서·약관 초안 작성', phase: 1 },
+      crm:           { connect: 'CRM 데이터를 연동', transform: '세그먼트·캠페인 생성, 영업 통화→CRM 자동 입력', phase: 2 },
+      sales:         { connect: '영업 데이터·통화를 연동', transform: '리드 리서치·스코어링, 제안서·팔로업 자동화', phase: 2 },
+      hr:            { connect: '인사·채용 데이터를 연결', transform: '채용공고·JD 생성, 이력서 검토, 사내규정 Q&A 봇', phase: 1 },
+      finance:       { connect: '회계 시스템 API·전자증빙 연동', transform: '전표 자동 분개, 세금계산서 대사, 자금흐름 분석', phase: 2 },
+      analytics:     { connect: '분석·BI 데이터를 연결', transform: '데이터→인사이트 자동 요약, 대시보드 코멘트 생성', phase: 1 },
+      support:       { connect: '문의 채널을 연동', transform: '자동 응대·분류·라우팅, 상담사 실시간 어시스트', phase: 2 },
+      channel:       { connect: '마케팅 채널을 연결', transform: '채널별 콘텐츠·광고카피 생성, 성과 분석', phase: 1 },
+      messaging:     { connect: '발송 도구를 연동', transform: '캠페인 카피 생성, 세그먼트별 발송 자동화', phase: 2 },
+      ecommerce:     { connect: '쇼핑몰·주문 데이터를 연동', transform: '상품 상세·분류 자동 생성, 주문/CS 응대, 수요예측', phase: 2 },
+      forms:         { connect: '설문 응답을 연결', transform: '주관식 자동 분류·요약, 인사이트 리포트', phase: 1 },
+      ai:            { connect: '이미 쓰는 AI를 표준 체계로 통합', transform: '공통 프롬프트·템플릿·커넥터로 전사 정착', phase: 1 },
+      automation:    { connect: '자동화 도구를 연동의 backbone으로', transform: 'AI 단계를 트리거 기반 파이프라인으로 무인 처리', phase: 1 },
+      vertical:      { connect: '업종 전용 시스템 데이터를 연동(가능범위 확인)', transform: '전용 데이터 추출·요약·업무 연동', phase: 2 },
+    };
+
+    let customToolCount = 0;
+    let currentModalCategory = null;
+
+    const STATE = {
+      step: 1,
+      selectedTools: [],
+      selectedTasks: [],
+      painPoint: '',
+      results: [],
+    };
+
+    function initializeUI() {
+      renderToolSelection();
+      renderTaskSelection();
+      setupEventListeners();
+      updateStepVisibility();
+    }
+
+    function renderToolSelection() {
+      const container = document.getElementById('tools-grid');
+      if (!container) return;
+      container.innerHTML = '';
+
+      TOOL_CATEGORIES.forEach((category) => {
+        const toolIds = category.tools;
+
+        const section = document.createElement('div');
+        section.className = 'category-section';
+
+        const header = document.createElement('div');
+        header.className = 'category-header';
+        header.textContent = category.label;
+        section.appendChild(header);
+
+        const chipGrid = document.createElement('div');
+        chipGrid.className = 'chip-grid';
+
+        toolIds.forEach((toolId) => {
+          const tool = TOOL_MAP[toolId];
+          if (!tool) return;
+
+          const chip = document.createElement('button');
+          chip.className = STATE.selectedTools.includes(toolId) ? 'chip selected' : 'chip';
+          chip.dataset.id = toolId;
+          chip.dataset.pool = 'tools';
+          chip.textContent = tool.name;
+
+          chipGrid.appendChild(chip);
+        });
+
+        const addChip = document.createElement('button');
+        addChip.className = 'chip chip-add';
+        addChip.textContent = '+ 직접 입력';
+        addChip.onclick = (e) => {
+          e.preventDefault();
+          currentModalCategory = category.id;
+          document.getElementById('modal-title').textContent = category.label + ' - 직접 입력';
+          document.getElementById('custom-modal').classList.add('active');
+        };
+        chipGrid.appendChild(addChip);
+
+        section.appendChild(chipGrid);
+        container.appendChild(section);
+      });
+    }
+
+    function renderTaskSelection() {
+      const container = document.getElementById('tasks-grid');
+      if (!container) return;
+      container.innerHTML = '';
+
+      TASK_CATEGORIES.forEach((category) => {
+        const taskIds = category.tasks;
+
+        const section = document.createElement('div');
+        section.className = 'category-section';
+
+        const header = document.createElement('div');
+        header.className = 'category-header';
+        header.textContent = category.label;
+        section.appendChild(header);
+
+        const chipGrid = document.createElement('div');
+        chipGrid.className = 'chip-grid';
+
+        taskIds.forEach((taskId) => {
+          const task = TASK_MAP[taskId];
+          if (!task) return;
+
+          const chip = document.createElement('button');
+          chip.className = STATE.selectedTasks.includes(taskId) ? 'chip selected' : 'chip';
+          chip.dataset.id = taskId;
+          chip.dataset.pool = 'tasks';
+          chip.textContent = task.name;
+
+          chipGrid.appendChild(chip);
+        });
+
+        section.appendChild(chipGrid);
+        container.appendChild(section);
+      });
+    }
+
+    function setTheme(theme) {
+      document.body.classList.toggle('light', theme === 'light');
+      document.getElementById('theme-dark').classList.toggle('active', theme === 'dark');
+      document.getElementById('theme-light').classList.toggle('active', theme === 'light');
+    }
+
+    function setupEventListeners() {
+      document.getElementById('theme-dark')?.addEventListener('click', () => setTheme('dark'));
+      document.getElementById('theme-light')?.addEventListener('click', () => setTheme('light'));
+
+      document.addEventListener('click', (e) => {
+        const chip = e.target.closest('.chip[data-id]');
+        if (!chip) return;
+
+        const id = chip.dataset.id;
+        const pool = chip.dataset.pool;
+
+        toggleSelection(pool, id);
+        chip.classList.toggle('selected');
+
+        updateCounter(pool);
+        updateNextButton(pool);
+      });
+
+      document.getElementById('btn-next-1')?.addEventListener('click', () => {
+        if (STATE.selectedTools.length > 0) goToStep(2);
+      });
+
+      document.getElementById('btn-back-2')?.addEventListener('click', () => goToStep(1));
+
+      document.getElementById('btn-next-2')?.addEventListener('click', () => {
+        if (STATE.selectedTasks.length > 0) {
+          const ppEl = document.getElementById('painpoint-input');
+          STATE.painPoint = ppEl ? ppEl.value.trim() : '';
+          generateResults();
+          goToStep(3);
+        }
+      });
+
+      document.getElementById('btn-reset')?.addEventListener('click', () => {
+        STATE.selectedTools = [];
+        STATE.selectedTasks = [];
+        STATE.painPoint = '';
+        STATE.results = [];
+        customToolCount = 0;
+        const ppReset = document.getElementById('painpoint-input');
+        if (ppReset) ppReset.value = '';
+        const compReset = document.getElementById('company-input');
+        if (compReset) compReset.value = '';
+        document.querySelectorAll('.chip.selected').forEach(c => c.classList.remove('selected'));
+        updateCounter('tools');
+        updateCounter('tasks');
+        updateNextButton('tools');
+        goToStep(1);
+      });
+
+      const leadModal = document.getElementById('lead-modal');
+      const openLeadModal = () => {
+        const comp = document.getElementById('company-input');
+        const leadComp = document.getElementById('lead-company');
+        if (comp && comp.value.trim() && leadComp && !leadComp.value) leadComp.value = comp.value.trim();
+        const leadMsg = document.getElementById('lead-message');
+        if (STATE.painPoint && leadMsg && !leadMsg.value) leadMsg.value = STATE.painPoint;
+        document.getElementById('lead-error').textContent = '';
+        leadModal.classList.add('active');
+      };
+      const closeLeadModal = () => leadModal.classList.remove('active');
+      const readLeadFields = () => ({
+        company: document.getElementById('lead-company').value.trim(),
+        name: document.getElementById('lead-name').value.trim(),
+        phone: document.getElementById('lead-phone').value.trim(),
+        email: document.getElementById('lead-email').value.trim(),
+        message: document.getElementById('lead-message').value.trim(),
+      });
+
+      document.getElementById('btn-consult')?.addEventListener('click', openLeadModal);
+      document.getElementById('lead-cancel')?.addEventListener('click', closeLeadModal);
+      leadModal?.addEventListener('click', (e) => { if (e.target === leadModal) closeLeadModal(); });
+
+      // 커넥터 상세 모달: 도구 칩 클릭, 명령 복사, 닫기
+      const connModal = document.getElementById('conn-modal');
+      document.addEventListener('click', (e) => {
+        const chip = e.target.closest('.stack-tool');
+        if (chip && chip.dataset.tid) { openConnectorDetail(chip.dataset.tid); return; }
+        const copyBtn = e.target.closest('.conn-copy');
+        if (copyBtn) {
+          const text = copyBtn.getAttribute('data-copy') || '';
+          copyText(text).then(() => {
+            const prev = copyBtn.textContent; copyBtn.textContent = '복사됨';
+            setTimeout(() => { copyBtn.textContent = prev; }, 1400);
+          }).catch(() => {});
+        }
+      });
+      document.getElementById('conn-modal-close')?.addEventListener('click', () => connModal.classList.remove('active'));
+      connModal?.addEventListener('click', (e) => { if (e.target === connModal) connModal.classList.remove('active'); });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          const chip = e.target.closest && e.target.closest('.stack-tool');
+          if (chip && chip.dataset.tid) { e.preventDefault(); openConnectorDetail(chip.dataset.tid); }
+        }
+        if (e.key === 'Escape') connModal.classList.remove('active');
+      });
+
+      document.getElementById('lead-submit')?.addEventListener('click', () => {
+        const f = readLeadFields();
+        const errEl = document.getElementById('lead-error');
+        if (!f.company) { errEl.textContent = '회사명을 입력해주세요.'; return; }
+        if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email)) { errEl.textContent = '올바른 이메일을 입력해주세요.'; return; }
+        errEl.textContent = '';
+        const subject = `[AI 전환 진단] ${f.company} 상담 신청`;
+        const body = buildLeadText(f);
+        window.location.href = `mailto:fornerdsofficial@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      });
+
+      document.getElementById('lead-copy')?.addEventListener('click', () => {
+        const f = readLeadFields();
+        if (!f.company) f.company = '(회사명 미입력)';
+        const btn = document.getElementById('lead-copy');
+        copyText(buildLeadText(f))
+          .then(() => { btn.textContent = '복사되었습니다'; setTimeout(() => { btn.textContent = '내용 복사하기'; }, 1600); })
+          .catch(() => { document.getElementById('lead-error').textContent = '복사에 실패했습니다. 내용을 직접 선택해 복사해주세요.'; });
+      });
+
+      const prepareReportHeader = () => {
+        const company = (document.getElementById('company-input')?.value || '').trim();
+        const titleEl = document.getElementById('rh-title');
+        if (titleEl) titleEl.textContent = company ? `${company} · AI 전환 로드맵` : 'AI 전환 로드맵';
+        const d = new Date();
+        const dateStr = `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+        const dateEl = document.getElementById('rh-date');
+        if (dateEl) dateEl.textContent = `진단일 ${dateStr} · 작성 주식회사 포너즈 (Fornerds)`;
+      };
+      // 인쇄 시 body/html을 강제로 라이트 테마로 (변수 재정의가 닿지 않는 최상위 배경 보강)
+      const setPrintTheme = (on) => {
+        const el = document.documentElement, b = document.body;
+        if (on) {
+          el.style.setProperty('background', '#ffffff', 'important');
+          b.style.setProperty('background', '#ffffff', 'important');
+          b.style.setProperty('color', '#111111', 'important');
+        } else {
+          el.style.background = ''; b.style.background = ''; b.style.color = '';
+        }
+      };
+      window.addEventListener('beforeprint', () => { prepareReportHeader(); setPrintTheme(true); });
+      window.addEventListener('afterprint', () => setPrintTheme(false));
+
+      document.getElementById('btn-pdf')?.addEventListener('click', () => window.print());
+
+      document.getElementById('custom-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') addCustomTool();
+      });
+    }
+
+    function closeCustomModal() {
+      document.getElementById('custom-modal').classList.remove('active');
+      document.getElementById('custom-input').value = '';
+      currentModalCategory = null;
+    }
+
+    function addCustomTool() {
+      const input = document.getElementById('custom-input');
+      const toolName = input.value.trim();
+
+      if (!toolName) {
+        alert('도구명을 입력해주세요.');
+        return;
+      }
+
+      const customId = 'custom_' + (++customToolCount);
+      const newTool = { id: customId, name: toolName, category: currentModalCategory };
+      TOOLS.push(newTool);
+      TOOL_MAP[customId] = newTool;
+      STATE.selectedTools.push(customId);
+
+      const container = document.getElementById('tools-grid');
+      const categorySection = Array.from(container.querySelectorAll('.category-section'))
+        .find(s => s.querySelector('.category-header').textContent.includes(
+          TOOL_CATEGORIES.find(c => c.id === currentModalCategory)?.label
+        ));
+
+      if (categorySection) {
+        const chipGrid = categorySection.querySelector('.chip-grid');
+        const chip = document.createElement('button');
+        chip.className = 'chip selected';
+        chip.dataset.id = customId;
+        chip.dataset.pool = 'tools';
+        chip.textContent = toolName;
+        chipGrid.insertBefore(chip, chipGrid.lastChild);
+      }
+
+      updateCounter('tools');
+      updateNextButton('tools');
+      closeCustomModal();
+    }
+
+    function toggleSelection(pool, id) {
+      const arr = pool === 'tools' ? STATE.selectedTools : STATE.selectedTasks;
+      const idx = arr.indexOf(id);
+      if (idx === -1) arr.push(id);
+      else arr.splice(idx, 1);
+    }
+
+    function updateCounter(pool) {
+      const arr = pool === 'tools' ? STATE.selectedTools : STATE.selectedTasks;
+      const counterId = pool === 'tools' ? 'tools-count' : 'tasks-count';
+      const counter = document.getElementById(counterId);
+      if (counter) counter.textContent = `${arr.length}개 선택됨`;
+    }
+
+    function updateNextButton(pool) {
+      const arr = pool === 'tools' ? STATE.selectedTools : STATE.selectedTasks;
+      const btnId = pool === 'tools' ? 'btn-next-1' : 'btn-next-2';
+      const btn = document.getElementById(btnId);
+      if (btn) btn.disabled = arr.length === 0;
+    }
+
+    function goToStep(n) {
+      STATE.step = n;
+      updateStepVisibility();
+      window.scrollTo(0, 0);
+    }
+
+    function updateStepVisibility() {
+      document.querySelectorAll('.step').forEach(el => el.style.display = 'none');
+      const currentStep = document.getElementById(`step-${STATE.step}`);
+      if (currentStep) currentStep.style.display = 'block';
+
+      document.querySelectorAll('.progress-segment').forEach((seg, i) => {
+        const stepNum = i + 1;
+        seg.classList.remove('active', 'completed');
+        if (stepNum === STATE.step) seg.classList.add('active');
+        else if (stepNum < STATE.step) seg.classList.add('completed');
+      });
+
+      const counter = document.getElementById('step-counter');
+      if (counter) counter.textContent = `${STATE.step} / 3`;
+    }
+
+    function generateResults() {
+      STATE.results = [];
+      const seen = new Set();
+
+      for (const taskId of STATE.selectedTasks) {
+        const task = TASK_MAP[taskId];
+        if (!task) continue;
+
+        const baseRec = TASK_BASE_RECS[taskId];
+        if (!baseRec) continue;
+
+        let bestRec = JSON.parse(JSON.stringify(baseRec));
+        let matchedTool = null;
+
+        for (const toolId of STATE.selectedTools) {
+          const override = TOOL_OVERRIDES[toolId]?.[taskId];
+          if (override) {
+            if (bestRec.difficulty !== 'easy' || override.difficulty === 'easy') {
+              bestRec = JSON.parse(JSON.stringify(override));
+              matchedTool = toolId;
+            }
+          }
+        }
+
+        const key = `${bestRec.solution}::${taskId}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+
+          const methodKey = matchedTool ? 'native' : (TASK_METHOD[taskId] || 'assistant');
+          const method = METHODS[methodKey];
+
+          const result = {
+            taskId,
+            taskName: task.name,
+            matchedTool: matchedTool ? TOOL_MAP[matchedTool]?.name : null,
+            ...bestRec,
+            method,
+            phase: method.phase,
+            priority: (method.phase * 10) + (bestRec.difficulty === 'easy' ? 1 : bestRec.difficulty === 'medium' ? 2 : 3),
+          };
+
+          STATE.results.push(result);
+        }
+      }
+
+      STATE.results.sort((a, b) => a.priority - b.priority);
+      renderResults();
+    }
+
+    function escapeHtml(s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, c => (
+        { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+      ));
+    }
+
+    // 상담 신청 본문 — 입력값 + 진단 요약을 함께 담아 리드 가치를 높인다.
+    function buildLeadText(f) {
+      const toolNames = STATE.selectedTools.map(id => TOOL_MAP[id] && TOOL_MAP[id].name).filter(Boolean);
+      const taskNames = STATE.selectedTasks.map(id => TASK_MAP[id] && TASK_MAP[id].name).filter(Boolean);
+      const p1 = STATE.results.filter(r => r.phase === 1).length;
+      const p2 = STATE.results.filter(r => r.phase === 2).length;
+      let lo = 0, hi = 0;
+      STATE.results.forEach(r => { const [a, b] = parseHours(r.timeSaving); lo += a; hi += b; });
+      const lines = [
+        '[AI 전환 진단 - 상담 신청]',
+        `회사명: ${f.company}`,
+        `담당자: ${f.name || '-'}`,
+        `연락처: ${f.phone || '-'}`,
+        `이메일: ${f.email || '-'}`,
+        '',
+        '[진단 요약]',
+        `- 진단한 도구 (${toolNames.length}): ${toolNames.join(', ') || '-'}`,
+        `- 자동화 대상 업무 (${taskNames.length}): ${taskNames.join(', ') || '-'}`,
+        `- 지금 바로 ${p1}건 / 개발 단계 ${p2}건`,
+        `- 예상 주간 절감(추정): ${lo === hi ? lo : lo + '~' + hi}시간`,
+      ];
+      if (STATE.painPoint) { lines.push('', '[가장 큰 병목]', STATE.painPoint); }
+      if (f.message) { lines.push('', '[문의 내용]', f.message); }
+      return lines.join('\n');
+    }
+
+    // 보안 컨텍스트(file:// 등)에서도 동작하도록 클립보드 복사 폴백 제공
+    function copyText(text) {
+      if (navigator.clipboard && window.isSecureContext) {
+        return navigator.clipboard.writeText(text);
+      }
+      return new Promise((resolve, reject) => {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.top = '-9999px';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        try { document.execCommand('copy') ? resolve() : reject(new Error('copy failed')); }
+        catch (e) { reject(e); }
+        document.body.removeChild(ta);
+      });
+    }
+
+    // "주 3-5시간" -> [3,5], "주 2시간" -> [2,2]
+    function parseHours(str) {
+      const range = String(str || '').match(/(\d+)\s*-\s*(\d+)/);
+      if (range) return [parseInt(range[1], 10), parseInt(range[2], 10)];
+      const single = String(str || '').match(/(\d+)/);
+      if (single) return [parseInt(single[1], 10), parseInt(single[1], 10)];
+      return [0, 0];
+    }
+
+    // ── 커넥터 연동 분류 (mcp-servers 빌드+QA 결과 기반, 2026-06) ──
+    // build: 우리가 MCP 서버를 만들어 둠(키 발급 가이드 SETUP.md 포함) / connect: 공식 원격 커넥터 로그인 연동 / unable: 공개 API 없음(현재 연동 불가)
+    const CONNECTOR = {
+      build: new Set(['jandi','kakao_work','google_meet','discord','band','hiworks','daouoffice','naver_mail','kakao_mail','trello','basecamp','hangul_office','pipedrive','notifly','flarelane','workday','sap_sf','bamboohr','greeting','flex','sap_erp','oracle_erp','hometax','smartbill','barobill','toss_business','wave','xero','ga_studio','looker','tableau','redash','freshdesk','channeltalk','happytalk','kakao_bizmsg','naver_talktalk','instagram_biz','meta_biz','youtube_studio','kakao_moment','naver_ad','tiktok_biz','aligo','ppurio','naver_sens','stibee','manychat','sendbird','cafe24','smartstore','makeshop','godoshopping','shopify','google_forms','opensurvey','chatgpt','claude_ai','gemini','clovax','daglo','dooray','swit','ms_planner','power_automate','coupang_wing','st11_seller','esmplus','sabangnet','playauto','imweb','kakaosync','walla','tosspayments','danbee','wanted','ucansign','okpos','tossplace','kakaotalk_biz','line_works']),
+      connect: new Set(['teams','slack','zoom','webex','gmail','outlook','notion','confluenece','jira','jira_cloud','asana','monday','clickup','smartsheet','airtable','linear','azure_devops','todoist','ms365','google_workspace','google_drive','google_calendar','onedrive','sharepoint','dropbox','canva','onlyoffice','salesforce','hubspot','zoho_crm','streak','braze','active_campaign','hackle','ga','powerbi','amplitude','mixpanel','hotjar','metabase','zendesk','intercom','zapier','make','ifttt','n8n','retool','slack_workflow','salesmap','dynamics_crm','google_ads','meta_ads','solapi','mailchimp','firebase_fcm','onesignal','typeform','copilot','perplexity','tiro','plaud','gamma','sixshop','modusign','docusign','flo']),
+      unable: new Set(['skype','bizboxalpha','loom','hancomworks','bigin','saramin_hrm','jobplanet','douzone_erp','wehago','kclep','gyeongni','cashnote','naver_analytics','remember','fingersales','plug','hanbiro_crm','kakao_channel','naver_smartplace','daangn_biz','socialbiz','naver_forms','wrtn','clovanote','midjourney','remotemeeting','callabo','sovoro','ezadmin','groobee','mobon','bizplay','younglimwon','datarize','shiftee','albam','jobda','jobkorea','ubcare','pm2000','goodsen','semusarang','hwamulman','lbox']),
+      uncertain: new Set(['flarelane','barobill','ppurio','daglo','tossplace','kakao_work','line_works','okpos']),
+    };
+    function connectorInfo(id) {
+      if (CONNECTOR.build.has(id)) return { route: 'build', label: 'MCP 서버 제공', cls: 'conn-build', setup: 'mcp-servers/' + id + '/SETUP.md', uncertain: CONNECTOR.uncertain.has(id) };
+      if (CONNECTOR.connect.has(id)) return { route: 'connect', label: '공식 커넥터(로그인)', cls: 'conn-connect' };
+      if (CONNECTOR.unable.has(id)) return { route: 'unable', label: '공개 API 없음', cls: 'conn-unable' };
+      return { route: 'unknown', label: '', cls: '' };
+    }
+
+    const CONNECTORS_HELP = 'https://support.claude.com/en/articles/14503689-mcp-connectors';
+
+    // 도구 클릭 → 실제 연동 방법 모달
+    function openConnectorDetail(id) {
+      const tool = TOOL_MAP[id];
+      if (!tool) return;
+      const ci = connectorInfo(id);
+      document.getElementById('conn-modal-title').textContent = tool.name;
+      let html = '';
+      if (ci.route === 'build') {
+        const cmd = 'claude mcp add --transport stdio ' + id + ' -- node mcp-servers/' + id + '/dist/index.js';
+        html =
+          '<span class="conn-route-tag conn-build">MCP 서버 제공</span>' +
+          '<p class="conn-step">포너즈가 구축한 MCP 서버로 연동합니다. 순서: <b>키 발급 → 명령 실행</b>.</p>' +
+          (ci.uncertain ? '<p class="conn-warn">* 키 발급 화면 안내가 일부 미확인입니다. 실제 콘솔에서 확인하세요.</p>' : '') +
+          '<p class="conn-step"><b>1. 키 발급</b> — 아래 가이드의 절차대로 키/토큰을 발급받으세요.</p>' +
+          '<a class="conn-link" href="' + ci.setup + '" target="_blank" rel="noopener">키 발급 가이드(SETUP) 열기 &rarr;</a>' +
+          '<p class="conn-step" style="margin-top:14px;"><b>2. Claude Code에 연동</b> — 발급한 키를 환경변수로 넣어 실행:</p>' +
+          '<div class="conn-code">' + escapeHtml(cmd) + '<button class="conn-copy" data-copy="' + escapeHtml(cmd) + '">복사</button></div>' +
+          '<p class="conn-step" style="font-size:12px;">필요한 환경변수(<b>--env KEY=값</b>)는 가이드의 「환경변수 매핑」을 참고하세요.</p>';
+      } else if (ci.route === 'connect') {
+        const cmd = 'claude mcp add --transport http ' + id + ' <공식 MCP URL>';
+        html =
+          '<span class="conn-route-tag conn-connect">공식 커넥터</span>' +
+          '<p class="conn-step">Claude가 <b>' + escapeHtml(tool.name) + '</b>의 공식 원격 커넥터를 지원합니다. 서버 구축 없이 <b>로그인만</b> 하면 됩니다.</p>' +
+          '<p class="conn-step"><b>연결 방법</b><br>1. Claude 데스크톱/Code에서 <b>설정 &rarr; 커넥터(Connectors)</b> 열기<br>2. 목록에서 <b>' + escapeHtml(tool.name) + '</b> 추가 &rarr; 브라우저에서 로그인·권한 승인<br>3. 또는 CLI로 추가(공식 MCP URL은 아래 안내 참조):</p>' +
+          '<div class="conn-code">' + escapeHtml(cmd) + '<button class="conn-copy" data-copy="' + escapeHtml(cmd) + '">복사</button></div>' +
+          '<a class="conn-link" href="' + CONNECTORS_HELP + '" target="_blank" rel="noopener">Claude 커넥터 공식 안내 &rarr;</a>';
+      } else if (ci.route === 'unable') {
+        html =
+          '<span class="conn-route-tag conn-unable">현재 연동 불가</span>' +
+          '<p class="conn-step"><b>' + escapeHtml(tool.name) + '</b>는 공개 API가 제공되지 않아 현재 자동 연동이 어렵습니다. (정직하게 표기)</p>' +
+          '<p class="conn-step">화면 자동화(RPA)나 대체 도구 등 우회 방안이 필요하면 상담에서 함께 검토합니다.</p>';
+      } else {
+        html = '<p class="conn-step">이 도구의 연동 정보가 아직 분류되지 않았습니다.</p>';
+      }
+      document.getElementById('conn-modal-body').innerHTML = html;
+      document.getElementById('conn-modal').classList.add('active');
+    }
+
+    // 선택한 "모든" 도구를 카테고리별로 묶어, AI 전환 관점의 연동·전환 방식을 보여준다.
+    function renderStackMap() {
+      const groups = {};
+      STATE.selectedTools.forEach((tid) => {
+        const tool = TOOL_MAP[tid];
+        if (!tool) return;
+        (groups[tool.category] = groups[tool.category] || []).push(tool);
+      });
+
+      const order = TOOL_CATEGORIES.map(c => c.id);
+      const cats = Object.keys(groups).sort((a, b) => order.indexOf(a) - order.indexOf(b));
+      if (!cats.length) return '';
+
+      const rows = cats.map((cat) => {
+        const meta = CATEGORY_TRANSFORM[cat];
+        const label = (TOOL_CATEGORIES.find(c => c.id === cat) || {}).label || cat;
+        const chips = groups[cat].map(t => {
+          const ci = connectorInfo(t.id);
+          const labelText = ci.route === 'build' && ci.uncertain ? 'MCP 서버 제공*' : ci.label;
+          const badge = ci.label ? `<span class="conn-badge ${ci.cls}">${labelText}</span>` : '';
+          return `<span class="stack-tool" data-tid="${t.id}" role="button" tabindex="0">${escapeHtml(t.name)}${badge}</span>`;
+        }).join('');
+        const phaseBadge = meta
+          ? (meta.phase === 1
+              ? '<span class="stack-phase badge-easy">즉시 연동</span>'
+              : '<span class="stack-phase badge-medium">연동·개발</span>')
+          : '';
+        const flow = meta
+          ? `<div class="stack-flow"><b>${meta.connect}</b><span class="arrow">→</span>${meta.transform}</div>`
+          : '';
+        return `
+          <div class="stack-row">
+            <div class="stack-row-head"><span class="stack-cat">${escapeHtml(label)}</span>${phaseBadge}</div>
+            <div class="stack-tools">${chips}</div>
+            ${flow}
+          </div>`;
+      }).join('');
+
+      // 연동 가능성 집계 (선택 도구 기준)
+      let cConn = 0, cBuild = 0, cUnable = 0, hasUncertain = false;
+      const buildIds = [];
+      STATE.selectedTools.forEach((tid) => {
+        const ci = connectorInfo(tid);
+        if (ci.route === 'connect') cConn++;
+        else if (ci.route === 'build') { cBuild++; buildIds.push(tid); if (ci.uncertain) hasUncertain = true; }
+        else if (ci.route === 'unable') cUnable++;
+      });
+      const ready = cConn + cBuild;
+      // 진단 → 설치 CLI 연결: 선택한 build 도구를 한 번에 설치하는 명령
+      const installCmd = buildIds.length ? ('npx github:fornerds/fornerds-connect --tools ' + buildIds.join(',')) : '';
+      const installBlock = buildIds.length ? `
+        <div class="install-cta">
+          <div class="install-cta-head"><b>이 ${buildIds.length}개를 한 번에 설치</b> <span class="dim">— MCP 서버 제공 도구</span></div>
+          <div class="conn-code">${escapeHtml(installCmd)}<button class="conn-copy" data-copy="${escapeHtml(installCmd)}">복사</button></div>
+          <p class="install-cta-note">Claude Code가 설치된 PC에서 실행하면 도구 선택·키 입력·연동이 한 번에 끝납니다. 키는 PC에만 저장됩니다. <span class="dim">(현재 레포 내 실행: <b>node cli/index.mjs --tools ${escapeHtml(buildIds.join(','))}</b>)</span></p>
+        </div>` : '';
+      const summary = `
+        <div class="conn-summary">
+          <div class="conn-stat"><div class="num">${ready}</div><div class="lbl">지금 연동 가능</div></div>
+          <div class="conn-stat"><div class="num">${cConn}</div><div class="lbl">공식 커넥터(로그인)</div></div>
+          <div class="conn-stat"><div class="num">${cBuild}</div><div class="lbl">MCP 서버 제공</div></div>
+          <div class="conn-stat"><div class="num">${cUnable}</div><div class="lbl">현재 연동 불가</div></div>
+        </div>
+        <p class="conn-note">
+          <b style="color:#4ade80;">공식 커넥터</b> = 벤더가 제공하는 원격 커넥터에 로그인만 하면 연동(빌드 불필요).
+          <b style="color:#60a5fa;">MCP 서버 제공</b> = 우리가 만든 MCP 서버 + 키 발급 가이드(클릭하면 SETUP 열람).
+          <b style="color:var(--text-secondary);">연동 불가</b> = 공개 API가 없어 현재 자동 연동 불가(정직 표기).
+          ${hasUncertain ? '<br>* 표시: 키 발급 화면 안내가 미확인일 수 있어 실제 콘솔 확인을 권장합니다.' : ''}
+          <br><b style="color:var(--text-primary);">각 도구를 클릭</b>하면 실제 연동 방법(명령·로그인 안내·키 발급 가이드)이 열립니다.
+        </p>
+        ${installBlock}`;
+
+      return `
+        <div class="section-heading">당신의 스택은 이렇게 연결됩니다</div>
+        <div class="section-sub">선택한 ${STATE.selectedTools.length}개 도구를 Claude에 어떻게 연동하는지 — 연동 방식과 준비 상태를 정리했습니다.</div>
+        ${summary}
+        ${rows}
+      `;
+    }
+
+    function buildCardHtml(rec) {
+      const difficultyLabel = rec.difficulty === 'easy' ? '쉬움' : rec.difficulty === 'medium' ? '보통' : '어려움';
+      const badgeClass = rec.difficulty === 'easy' ? 'badge-easy' : rec.difficulty === 'hard' ? 'badge-hard' : 'badge-medium';
+      const flowHtml = rec.method.flow.map(step => `<li>${escapeHtml(step)}</li>`).join('');
+      const stepsHtml = rec.steps.map(step => `<li>${escapeHtml(step)}</li>`).join('');
+      const subTitle = 'font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-secondary);margin:14px 0 6px;';
+
+      return `
+        <div class="rec-card">
+          <div class="rec-header">
+            <div class="rec-solution">${escapeHtml(rec.solution)}</div>
+            <div class="rec-badge ${badgeClass}">난이도 ${difficultyLabel}</div>
+          </div>
+          <div class="rec-meta">
+            <span>대상 업무: ${escapeHtml(rec.taskName)}</span>
+          </div>
+          <div class="rec-meta">
+            <span>구현 방식: ${escapeHtml(rec.method.label)}</span>
+            <span>시간 절감: ${escapeHtml(rec.timeSaving)}</span>
+            <span>비용: ${escapeHtml(rec.cost)}</span>
+          </div>
+          <div class="rec-tags">
+            ${rec.matchedTool
+              ? `<span class="tag tag-tool">${escapeHtml(rec.matchedTool)} 활용</span>`
+              : `<span class="tag">${escapeHtml(rec.method.label)}</span>`}
+          </div>
+          <button class="rec-expand" aria-expanded="false">구현 방법 보기</button>
+          <div class="rec-steps" hidden>
+            <p style="color:var(--text-secondary);">${escapeHtml(rec.method.desc)}</p>
+            <div style="${subTitle}">구현 흐름</div>
+            <ol>${flowHtml}</ol>
+            <div style="${subTitle}">AI가 하는 일</div>
+            <ol>${stepsHtml}</ol>
+          </div>
+        </div>`;
+    }
+
+    function renderResults() {
+      const container = document.getElementById('results-cards');
+      if (!container) return;
+
+      const phase1 = STATE.results.filter(r => r.phase === 1);
+      const phase2 = STATE.results.filter(r => r.phase === 2);
+
+      let lo = 0, hi = 0;
+      STATE.results.forEach((r) => { const [a, b] = parseHours(r.timeSaving); lo += a; hi += b; });
+      const saveText = lo === hi ? `${lo}` : `${lo}~${hi}`;
+
+      let html = '';
+
+      if (STATE.painPoint) {
+        html += `
+          <div class="pain-echo">
+            <span class="pain-label">가장 큰 병목</span>
+            <p>${escapeHtml(STATE.painPoint)}</p>
+            <span class="pain-foot">상담에서 이 업무를 최우선으로 다뤄 전환 효과를 가장 빨리 체감하도록 설계합니다.</span>
+          </div>`;
+      }
+
+      html += `
+        <div class="results-summary">
+          <div class="stat-pill"><span class="stat-value">${STATE.selectedTools.length}</span><span class="stat-label">진단한 도구</span></div>
+          <div class="stat-pill"><span class="stat-value">${STATE.results.length}</span><span class="stat-label">자동화 대상 업무</span></div>
+          <div class="stat-pill"><span class="stat-value">${phase1.length}</span><span class="stat-label">지금 바로</span></div>
+          <div class="stat-pill"><span class="stat-value">${phase2.length}</span><span class="stat-label">개발 단계</span></div>
+          <div class="stat-pill"><span class="stat-value">${saveText}</span><span class="stat-label">주간 절감(시간·추정)</span></div>
+        </div>
+      `;
+
+      html += renderStackMap();
+
+      html += `
+        <div class="section-heading">AI 전환 로드맵</div>
+        <div class="section-sub">선택한 업무를 "지금 바로 되는 것"과 "개발이 필요한 것"으로 나눴습니다. 쉬운 것부터 정렬됩니다.</div>
+      `;
+
+      if (phase1.length) {
+        html += `<div class="phase-divider"><span class="pd-num">1단계</span><span class="pd-title">지금 바로 시작 · 개발 없이</span><span class="pd-count">${phase1.length}개</span></div>`;
+        html += phase1.map(buildCardHtml).join('');
+      }
+      if (phase2.length) {
+        html += `<div class="phase-divider"><span class="pd-num">2단계</span><span class="pd-title">개발로 완성</span><span class="pd-count">${phase2.length}개</span></div>`;
+        html += phase2.map(buildCardHtml).join('');
+      }
+
+      container.innerHTML = html;
+
+      document.querySelectorAll('.rec-expand').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const card = btn.closest('.rec-card');
+          const steps = card.querySelector('.rec-steps');
+          const isExpanded = btn.getAttribute('aria-expanded') === 'true';
+
+          if (isExpanded) {
+            steps.hidden = true;
+            btn.setAttribute('aria-expanded', 'false');
+            btn.textContent = '구현 방법 보기';
+          } else {
+            steps.hidden = false;
+            btn.setAttribute('aria-expanded', 'true');
+            btn.textContent = '닫기';
+          }
+        });
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', initializeUI);
+  </script>
+</body>
+</html>
